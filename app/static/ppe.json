@@ -1,0 +1,26 @@
+[
+    {
+        "ppe": "Botas",
+        "img": "/static/img/ppe-icons/boots.png"
+    },
+    {
+        "ppe": "Careta",
+        "img": "/static/img/ppe-icons/face-shield.png"
+    },
+    {
+        "ppe": "Máscara de gas",
+        "img": "/static/img/ppe-icons/gas-mask.png"
+    },
+    {
+        "ppe": "Gafas de seguridad",
+        "img": "/static/img/ppe-icons/glasses.png"
+    },
+    {
+        "ppe": "Guantes",
+        "img": "/static/img/ppe-icons/gloves.png"
+    },
+    {
+        "ppe": "Traje de proctección",
+        "img": "/static/img/ppe-icons/protective-suit.png"
+    }
+]

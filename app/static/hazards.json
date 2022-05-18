@@ -1,0 +1,65 @@
+[
+    {
+        "code": "GHS01",
+        "hazard": "Explosivo",
+        "description": "Sustancias y preparaciones que pueden explotar bajo efecto de una llama o que son más sensibles a los choques o fricciones que el dinitrobenceno.",
+        "precaution": "Evitar golpes, sacudidas, fricción, flamas o fuentes de calor.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs01-explosive.svg"
+    },
+    {
+        "code": "GHS02",
+        "hazard": "Inflamable",
+        "description": "Sustancias y preparaciones que pueden calentarse y finalmente inflamarse en contacto con el aire a una temperatura normal sin necesidad de energía, o que pueden inflamarse fácilmente por una breve acción de una fuente de inflamación y que continúan ardiendo o consumiéndose después de haber apartado la fuente de inflamación, o inflamables en contacto con el aire a presión normal, o que, en contacto con el agua o el aire húmedo, emanan gases fácilmente inflamables en cantidades peligrosas.",
+        "precaution": "Sustancias y preparaciones que pueden calentarse y finalmente inflamarse en contacto con el aire a una temperatura normal sin necesidad de energía, o que pueden inflamarse fácilmente por una breve acción de una fuente de inflamación y que continúan ardiendo o consumiéndose después de haber apartado la fuente de inflamación, o inflamables en contacto con el aire a presión normal, o que, en contacto con el agua o el aire húmedo, emanan gases fácilmente inflamables en cantidades peligrosas.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs02-flammable.svg"
+    },
+    {
+        "code": "GHS03",
+        "hazard": "Comburente",
+        "description": "Sustancias que tienen la capacidad de incendiar otras sustancias, facilitando la combustión e impidiendo el combate del fuego.",
+        "precaution": "Evitar su contacto con materiales combustibles.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs03-oxidizing.svg"
+    },
+    {
+        "code": "GHS04",
+        "hazard": "Gas",
+        "description": "Sustancias gaseosas comprimidas, líquidas o disueltas, contenidas a presión de 200 kPa o superior, en un recipiente que pueden explotar con el calor.",
+        "precaution": "No lanzarlas nunca al fuego.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs04-compressed-gas.svg"
+    },
+    {
+        "code": "GHS05",
+        "hazard": "Corrosivo",
+        "description": "Estos productos químicos causan destrucción de tejidos vivos y/o materiales inertes.",
+        "precaution": "No inhalar y evitar el contacto con la piel, ojos y ropas.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs05-corrosive.svg"
+    },
+    {
+        "code": "GHS06",
+        "hazard": "Tóxicidad aguda",
+        "description": "Sustancias y preparaciones que por inhalación, ingesta o absorción a través de la piel, provoca graves problemas de salud e incluso la muerte.",
+        "precaution": "Todo el contacto con el cuerpo humano debe ser evitado.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs06-toxic.svg"
+    },
+    {
+        "code": "GHS07",
+        "hazard": "Irritación cutánea",
+        "description": "Sustancias y preparaciones que por penetración cutánea, pueden implicar riesgos graves, agudos o crónicos en la salud.",
+        "precaution": "Todo el contacto con el cuerpo humano debe ser evitado.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs07-harmful.svg"
+    },
+    {
+        "code": "GHS08",
+        "hazard": "Peligroso por aspiración",
+        "description": "Sustancias y preparaciones que, por inhalación, ingestión o penetración cutánea, pueden implicar riesgos a la salud graves o agudos.",
+        "precaution": "Debe ser evitado el contacto con el cuerpo humano, así como la inhalación de los vapores.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs08-health-hazard.svg"
+    },
+    {
+        "code": "GHS09",
+        "hazard": "Peligroso para el medio ambiente",
+        "description": "El contacto de esa sustancia con el medio ambiente puede provocar daños al ecosistema a corto o largo plazo.",
+        "precaution": "El contacto de esa sustancia con el medio ambiente puede provocar daños al ecosistema a corto o largo plazo.",
+        "pictogram": "/static/img/ghs-hazard-pictograms/ghs09-environmental-hazard.svg"
+    }
+]

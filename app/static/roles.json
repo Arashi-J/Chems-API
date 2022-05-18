@@ -1,0 +1,22 @@
+[
+  {
+    "role": "admin",
+    "role_name": "Administrador"
+  },
+  {
+    "role": "user",
+    "role_name": "Usuario"
+  },
+  {
+    "role": "oshms_approver",
+    "role_name": "Aprobador SGSST"
+  },
+  {
+    "role": "ems_approver",
+    "role_name": "Aprobador SGA"
+  },
+  {
+    "role": "fsms_approver",
+    "role_name": "Aprobador SGIA"
+  }
+]
