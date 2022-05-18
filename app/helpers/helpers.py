@@ -12,13 +12,20 @@ async def populate(
     """
     populated_items = []
 
-    if type(dict_to_populate[field_with_nested_ids]) is not list:
-        return dict_to_populate
+    field = dict_to_populate[field_with_nested_ids]
 
-    for nested_id in dict_to_populate[field_with_nested_ids]:
-        item = await collection.find_one({"_id": nested_id})
+    if type(field) is list:
+        
+        for nested_id in field:
+            item = await collection.find_one({"_id": nested_id})
+            populated_items.append(
+                {"id": nested_id, field_to_populate: item[field_to_populate]}
+            )
+
+    else:
+        item = await collection.find_one({"_id": field})
         populated_items.append(
-            {"id": nested_id, field_to_populate: item[field_to_populate]}
+                {"id": field, field_to_populate: item[field_to_populate]}
         )
 
     dict_to_populate.update({field_with_nested_ids: populated_items})
@@ -45,11 +52,16 @@ async def multiple_populate(
     ]
     return documents
 
-async def db_validation(data_in: BaseModel, field_to_validate: str, collection)->None:
+async def db_validation(data_in: BaseModel, field_to_validate: str, collection, check_duplicate: bool)->None:
     """
-    Valida si existen los valores indicados en la base de datos. Para verificar que los campos índice no sean duplicados.
+    Valida si existen los valores indicados en la base de datos. Para verificar que los campos índice no sean duplicados o un valor válido, depediendo si el parámetro check_duplicate es True o False.
     """
     query = {field_to_validate: data_in.dict()[field_to_validate]}
     result = await collection.find_one(query)
-    if result:
-        raise HTTPException(status_code=400, detail=f"{query} ya se encuentra en la base de datos")
+
+    if check_duplicate:
+        if result:
+            raise HTTPException(status_code=400, detail=f"{query} ya se encuentra en la base de datos")
+    else:
+        if not result:
+            raise HTTPException(status_code=400, detail=f"{query} no se encuentra en la base de datos")

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     CONNECTION_STRING: str
         
     class Config:
-        env_file:str = "../.env"
+        env_file:str = ".env"
         env_file_encoding = 'utf-8'
 
 

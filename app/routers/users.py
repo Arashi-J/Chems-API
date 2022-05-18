@@ -1,17 +1,18 @@
 from fastapi import APIRouter, Body, Query, Path
 
-from db.database import db
+from app.db.database import db
 
-from crud.crud import get_document_by_id, get_documents, create_documents, update_document
-from helpers.helpers import populate, multiple_populate, db_validation
-from models.py_object_id import PyObjectId
-from models.user import UserRead, UserCreate, UserUpdate
-from models.query_status import QueryStatus
+from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
+from app.helpers.helpers import populate, multiple_populate, db_validation
+from app.models.py_object_id import PyObjectId
+from app.models.user import UserRead, UserCreate, UserUpdate
+from app.models.query_status import QueryStatus
 
 users = APIRouter(prefix='/users', tags=['Usuarios'])
 
 users_collection = db.users
 areas_collection = db.areas
+roles_collection = db.roles
 
 @users.get('/', name="Obtener usuarios", response_model=list[UserRead], status_code=200)
 async def get_users(
@@ -24,6 +25,7 @@ async def get_users(
     """
     users = await get_documents(users_collection, skip, limit, status)
     users = await multiple_populate(users, "areas", areas_collection, "area")
+    users = await multiple_populate(users, "role", areas_collection, "role_name")
     return users
 
 @users.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
@@ -40,9 +42,9 @@ async def create_user(user: UserCreate = Body(..., title="Datos del Usuario", de
     """
     Crea un usuario. Retorna el usuario Creado.
     """
-    await db_validation(user, "username", users_collection)
-    await db_validation(user, "email", users_collection)
-    new_user = await create_documents(user, users_collection)
+    await db_validation(user, "username", users_collection, True)
+    await db_validation(user, "email", users_collection, True)
+    new_user = await create_documents(user, users_collection, True)
     new_user = await populate(new_user, "areas", areas_collection, "area")
     return new_user
 
@@ -54,8 +56,8 @@ async def update_user(
     """
     Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
     """
-    await db_validation(new_data, "username", users_collection)
-    await db_validation(new_data, "email", users_collection)
+    await db_validation(new_data, "username", users_collection, True)
+    await db_validation(new_data, "email", users_collection, True)
     updated_user = await update_document(id, users_collection, new_data)    
     updated_user = await populate(updated_user, "areas", areas_collection, "area")
     return updated_user

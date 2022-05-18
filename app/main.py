@@ -2,8 +2,9 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from routers.users import users
-from core.config import get_settings
+
+from app.routers.users import users
+from app.core.config import get_settings
 
 description = """
     Administre las sustancias químicas que se utilizan en su empresa
@@ -38,7 +39,7 @@ app = FastAPI(
 app.include_router(users)
 
 #For serving static Files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # For serving Jinja Templates
 templates = Jinja2Templates(directory="templates")

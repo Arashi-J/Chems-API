@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from fastapi import HTTPException
 
-from models.py_object_id import PyObjectId
-from models.query_status import QueryStatus
+from app.models.py_object_id import PyObjectId
+from app.models.query_status import QueryStatus
 
 async def get_documents(collection, skip: int, limit: int, status:QueryStatus)->list:   
     query = {"status": True} if status == QueryStatus.active else {"status": False} if status == QueryStatus.inactive else {}

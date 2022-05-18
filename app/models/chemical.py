@@ -2,10 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-#from models.py_object_id import PyObjectId
-from models.hazard import Hazard
-from models.ppe import Ppe
-#from models.user import User
+#from app.models.py_object_id import PyObjectId
+from app.models.hazard import Hazard
+from app.models.ppe import Ppe
+#from app.models.user import User
 
 class Chemical(BaseModel):
 

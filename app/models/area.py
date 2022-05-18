@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
-from models.py_object_id import PyObjectId
+from app.models.py_object_id import PyObjectId
 
 
 class Area(BaseModel):
