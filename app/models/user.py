@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
 from bson import ObjectId
-from typing import Any
 
 from app.models.py_object_id import PyObjectId
 

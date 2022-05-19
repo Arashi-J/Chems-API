@@ -27,3 +27,5 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel)->dict
     await collection.update_one({"_id": id}, {"$set": new_data})   
     updated_document = await get_document_by_id(id, collection)
     return updated_document
+
+#TODO: Usar db_valitation para validaciones, No pasa la validación campos vacíos
