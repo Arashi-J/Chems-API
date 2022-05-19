@@ -42,7 +42,7 @@ app.include_router(users)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # For serving Jinja Templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="app/templates")
 
 
 #CORS Configuration
