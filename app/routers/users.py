@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, Query, Path
 from app.db.database import db
 
 from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
-from app.helpers.helpers import populate, multiple_populate, db_validation
+from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation
 from app.models.py_object_id import PyObjectId
 from app.models.user import UserRead, UserCreate, UserUpdate
 from app.models.query_status import QueryStatus
@@ -25,7 +25,7 @@ async def get_users(
     """
     users = await get_documents(users_collection, skip, limit, status)
     users = await multiple_populate(users, "areas", areas_collection, "area")
-    users = await multiple_populate(users, "role", areas_collection, "role_name")
+    users = await multiple_populate(users, "role", roles_collection, "role_name")
     return users
 
 @users.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
@@ -35,6 +35,7 @@ async def get_user(id: PyObjectId = Path(..., title="ID del Usuario", descriptio
     """
     user = await get_document_by_id(id, users_collection)
     user = await populate(user, "areas", areas_collection, "area")
+    user = await populate(user, "role", roles_collection, "role_name")
     return user
 
 @users.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
@@ -42,10 +43,12 @@ async def create_user(user: UserCreate = Body(..., title="Datos del Usuario", de
     """
     Crea un usuario. Retorna el usuario Creado.
     """
-    await db_validation(user, "username", users_collection, True)
-    await db_validation(user, "email", users_collection, True)
-    new_user = await create_documents(user, users_collection, True)
+    await db_validation(user, "username", users_collection)
+    await db_validation(user, "email", users_collection)
+    await db_validation(user, "role", roles_collection, False, True)
+    new_user = await create_documents(user, users_collection)
     new_user = await populate(new_user, "areas", areas_collection, "area")
+    #new_user = await populate(user, "role", roles_collection, "role_name")
     return new_user
 
 @users.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)

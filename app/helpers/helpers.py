@@ -52,11 +52,20 @@ async def multiple_populate(
     ]
     return documents
 
-async def db_validation(data_in: BaseModel, field_to_validate: str, collection, check_duplicate: bool)->None:
+async def db_validation(
+    data_in: BaseModel,
+    field_to_validate: str,
+    collection,
+    check_duplicate: bool = True,
+    search_id: bool = False
+    )->None:
     """
     Valida si existen los valores indicados en la base de datos. Para verificar que los campos índice no sean duplicados o un valor válido, depediendo si el parámetro check_duplicate es True o False.
     """
-    query = {field_to_validate: data_in.dict()[field_to_validate]}
+    query_value = data_in.dict()[field_to_validate]
+
+    query = {"_id": query_value} if search_id else {field_to_validate: query_value}
+    
     result = await collection.find_one(query)
 
     if check_duplicate:
@@ -65,3 +74,6 @@ async def db_validation(data_in: BaseModel, field_to_validate: str, collection, 
     else:
         if not result:
             raise HTTPException(status_code=400, detail=f"{query} no se encuentra en la base de datos")
+
+async def multiple_db_validation(data_in: BaseModel):
+    pass
