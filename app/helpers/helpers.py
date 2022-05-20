@@ -47,18 +47,20 @@ async def multiple_populate(
     """
     Remplaza los MongoID aninados en una lista por un diccionario de la forma {"id": id, "valor": valor} para varios documentos en una lista.
     """
-
-    documents = [
-        await populate(
-            document, field_with_nested_ids, collection, field_to_populate
-        )
-        for document in documents
-    ]
-    return documents
+    try:
+        documents = [
+            await populate(
+                document, field_with_nested_ids, collection, field_to_populate
+            )
+            for document in documents
+        ]
+        return documents
+    except:
+        return documents
 
 async def db_validation(
-    data_in: BaseModel,
-    field_to_validate: str,
+    data_in: BaseModel | None,
+    field_to_validate: str | None,
     collection,
     check_duplicate: bool = True,
     search_id: bool = False,
@@ -77,7 +79,7 @@ async def db_validation(
     if check_duplicate and result:
             raise HTTPException(status_code=400, detail=f"{query} ya se encuentra en la base de datos")
 
-    if not check_duplicate and not result:
+    if query_value and not check_duplicate and not result:
         raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {query} no se encuentra en la base de datos.")
 
 async def multiple_db_validation(
@@ -86,19 +88,23 @@ async def multiple_db_validation(
     collection,
     )->None:
     """
-    Verifica en un iterable que los con Mongo IDs en el campo iterable tengan un valor válido.
+    Verifica en un iterable que los con Mongo IDs en el campo iterable tengan un valor que exista en la base de datos.
     """
-    for nested_id in data_in.dict()[field_to_validate]:
-        await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
-
-#TODO: Quitar duplicados en área
+    try:
+        for nested_id in data_in.dict()[field_to_validate]:
+            await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
+    except:
+        pass
 
 def drop_duplicates(document: BaseModel, field_with_duplicates: str):
-    
-    document_dict = document.dict()
+    try:
+        document_dict = document.dict()
 
-    document_dict[field_with_duplicates] = list(set(document_dict[field_with_duplicates]))
-    
-    document = document.parse_obj(document_dict)
+        document_dict[field_with_duplicates] = list(set(document_dict[field_with_duplicates]))
+        
+        document = document.parse_obj(document_dict)
 
-    return document
+        return document
+    
+    except:
+        return document

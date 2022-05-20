@@ -35,6 +35,7 @@ async def get_user(id: PyObjectId = Path(..., title="ID del Usuario", descriptio
     """
     Obtiene el usuario correspondiente al ID ingresado.
     """
+    await db_validation(None, None, users_collection, False, True, id)
     user = await get_document_by_id(id, users_collection)
     user = await populate(user, "areas", areas_collection, "area")
     user = await populate(user, "role", roles_collection)
@@ -64,8 +65,9 @@ async def update_user(
     Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
     """
     new_data = drop_duplicates(new_data, "areas") 
-    await db_validation(new_data, "username", users_collection, True)
-    await db_validation(new_data, "email", users_collection, True)
+    await db_validation(None, None, users_collection, False, True, id)
+    await db_validation(new_data, "username", users_collection)
+    await db_validation(new_data, "email", users_collection)
     await db_validation(new_data, "role", roles_collection, False, True)
     await multiple_db_validation(new_data, "areas", areas_collection)
     updated_user = await update_document(id, users_collection, new_data)    
@@ -79,5 +81,6 @@ async def get_role(id: PyObjectId = Path(..., title="ID del Rol", description="E
     """
     Obtiene el rol correspondiente al ID ingresado.
     """
+    await db_validation(None, None, roles_collection, False, True, id)
     role = await get_document_by_id(id, roles_collection)
     return role
