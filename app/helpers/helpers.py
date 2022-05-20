@@ -97,6 +97,9 @@ async def multiple_db_validation(
         pass
 
 def drop_duplicates(document: BaseModel, field_with_duplicates: str):
+    """
+    Elimina los elementos duplicados en los campos tipo lista o tupla de un Modelo
+    """
     try:
         document_dict = document.dict()
 
@@ -108,3 +111,9 @@ def drop_duplicates(document: BaseModel, field_with_duplicates: str):
     
     except:
         return document
+
+#TODO: normalizador de texto
+
+def text_normalizer(text: str)-> str:
+    text = text.title()
+    return text

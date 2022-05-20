@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from fastapi import HTTPException
 
 from app.models.py_object_id import PyObjectId
 from app.models.query_status import QueryStatus
@@ -24,5 +23,3 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel)->dict
     await collection.update_one({"_id": id}, {"$set": new_data})   
     updated_document = await get_document_by_id(id, collection)
     return updated_document
-
-#TODO: normalizador de texto
