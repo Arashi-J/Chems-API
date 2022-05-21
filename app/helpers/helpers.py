@@ -1,3 +1,4 @@
+import unicodedata
 from fastapi import HTTPException
 from pydantic import BaseModel
 
@@ -96,24 +97,26 @@ async def multiple_db_validation(
     except:
         pass
 
-def drop_duplicates(document: BaseModel, field_with_duplicates: str):
-    """
-    Elimina los elementos duplicados en los campos tipo lista o tupla de un Modelo
-    """
-    try:
-        document_dict = document.dict()
 
-        document_dict[field_with_duplicates] = list(set(document_dict[field_with_duplicates]))
-        
-        document = document.parse_obj(document_dict)
+def text_normalizer_title(text:str)->str:
 
-        return document
-    
-    except:
-        return document
-
-#TODO: normalizador de texto
-
-def text_normalizer(text: str)-> str:
     text = text.title()
-    return text
+        
+    nfkd_form = unicodedata.normalize('NFKD', text)
+    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+
+def text_normalizer_lower(text:str)->str:
+
+    text = text.casefold()
+        
+    nfkd_form = unicodedata.normalize('NFKD', text)
+    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+
+def drop_duplicates(input: list)->list:
+    """
+    Elimina los elementos duplicados en los campos tipo lista o tupla.
+    """
+    try: 
+        input = list(set(input))
+    finally :
+        return input

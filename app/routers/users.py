@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Query, Path
 from app.db.database import db
 
 from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
-from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, drop_duplicates
+from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation
 from app.models.py_object_id import PyObjectId
 from app.models.role import Role
 from app.models.user import UserRead, UserCreate, UserUpdate
@@ -46,7 +46,6 @@ async def create_user(user: UserCreate = Body(..., title="Datos del Usuario", de
     """
     Crea un usuario. Retorna el usuario Creado.
     """
-    user = drop_duplicates(user, "areas") 
     await db_validation(user, "username", users_collection)
     await db_validation(user, "email", users_collection)
     await db_validation(user, "role", roles_collection, False, True)
@@ -64,7 +63,6 @@ async def update_user(
     """
     Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
     """
-    new_data = drop_duplicates(new_data, "areas") 
     await db_validation(None, None, users_collection, False, True, id)
     await db_validation(new_data, "username", users_collection)
     await db_validation(new_data, "email", users_collection)

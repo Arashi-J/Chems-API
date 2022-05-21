@@ -1,7 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, validator
 from bson import ObjectId
 
 from app.models.py_object_id import PyObjectId
+from app.helpers.helpers import text_normalizer_lower, text_normalizer_title, drop_duplicates
+
 
 class UserBase(BaseModel):
     firstname: str = Field(..., title="Nombre del Usuario", description="Nombre del Usuario.")
@@ -14,11 +16,19 @@ class UserBase(BaseModel):
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+    #Normalizers
+    _normalize_name = validator("firstname", "lastname", allow_reuse=True)(text_normalizer_title)
+    _normalize_username_mail = validator("username", "email", allow_reuse=True)(text_normalizer_lower)
+    _normalize_areas = validator("areas", check_fields=False, allow_reuse=True)(drop_duplicates)
+   
     
 class UserCreate(UserBase):
     password: str = Field(..., title="Contraseña del Usuario", description="Se utiliza junto con el usuario para iniciar sesión")
     areas: list[PyObjectId] = Field([], title="Áreas del Usuario", description="ID de las áreas que puede editar el usuario. MongoID")
     role: PyObjectId | None = Field(None, title="Rol del Usuario", description="Los permisos del usuario se asignan de acuerdo al rol.")
+
+    
     
 class UserUpdate(UserBase):
     firstname: str  | None = Field(None, title="Nombre del Usuario", description="Nombre del Usuario.")
