@@ -5,7 +5,7 @@ class Settings(BaseSettings):
 
     JWT_SK: str
     ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     CONNECTION_STRING: str
         
     class Config:
