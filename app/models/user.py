@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 from bson import ObjectId
 
+from app.core.security import hash_password
 from app.models.py_object_id import PyObjectId
 from app.helpers.helpers import text_normalizer_lower, text_normalizer_title, drop_duplicates
 
@@ -21,6 +22,7 @@ class UserBase(BaseModel):
     _normalize_name = validator("firstname", "lastname", allow_reuse=True)(text_normalizer_title)
     _normalize_username_mail = validator("username", "email", allow_reuse=True)(text_normalizer_lower)
     _normalize_areas = validator("areas", check_fields=False, allow_reuse=True)(drop_duplicates)
+    _hash_password = validator("password", check_fields=False, allow_reuse=True)(hash_password)
    
     
 class UserCreate(UserBase):
