@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, Query, Path, Depends, HTTPException
 
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.core.auth import authenticate_user, create_access_token
+from app.core.auth import authenticate_user, create_access_token, login_for_access_token
 from app.core.config import get_settings
 from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
 from app.db.database import db
@@ -79,20 +79,22 @@ async def update_user(
 
 
 @users.post("/login", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm =Depends()):
-    user = await authenticate_user(users_collection, form_data.username, form_data.password)
-    if not user:
-         raise HTTPException(
-            status_code=401,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = await create_access_token(
-        data = {"sub": user["username"]},
-        expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    return await login_for_access_token(form_data)
+
+    # user = await authenticate_user(users_collection, form_data.username, form_data.password)
+    # if not user:
+    #      raise HTTPException(
+    #         status_code=401,
+    #         detail="Incorrect username or password",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
+    # access_token_expires = timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token = await create_access_token(
+    #     data = {"sub": user["username"]},
+    #     expires_delta=access_token_expires
+    # )
+    # return {"access_token": access_token, "token_type": "bearer"}
 
 @users.get('/role/{id}',name="Obtener Rol", response_model=Role, status_code=200)
 async def get_role(id: PyObjectId = Path(..., title="ID del Rol", description="El MongoID del rol a buscar"))->dict:
