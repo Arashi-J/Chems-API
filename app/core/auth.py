@@ -6,12 +6,14 @@ from jose import jwt, JWTError
 from app.core.config import get_settings
 from app.core.security import verify_password
 from app.db.database import db
-from app.crud.crud import get_document_by_query
+from app.crud.crud import get_document_by_id, get_document_by_query
 from app.models.token import TokenData
+from app.models.user import UserRead
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
 users_collection = db.users
+roles_collection = db.roles
 
 async def authenticate_user(collection, username: str, password: str):
     user = await get_document_by_query({"username": username}, collection)
@@ -63,7 +65,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    print (token_data.dict())
     user = await get_document_by_query(token_data.dict(), users_collection)
     if user is None:
         raise credentials_exception
@@ -71,3 +72,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=400, detail="Usuario Deshabilitado")
     return user
 
+async def validate_role(user: UserRead, allowd_roles: list[str] = []):
+    user_role = dict(await get_document_by_id(user["role"], roles_collection))["role"]
+    if not user_role == "admin" and user_role not in allowd_roles:
+        raise HTTPException(status_code=403, detail="El usuario no tiene los permisos suficientes para realizar la operación")

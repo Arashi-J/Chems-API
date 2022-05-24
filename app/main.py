@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.users import users
+from app.routers.chemicals import chemicals
 from app.core.config import get_settings
 
 description = """
@@ -36,7 +37,7 @@ app = FastAPI(
     openapi_tags=tags_metadata
 )
 
-app.include_router(users)
+app.include_router([users, chemicals])
 
 #For serving static Files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

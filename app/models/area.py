@@ -6,7 +6,7 @@ from bson import ObjectId
 from app.models.py_object_id import PyObjectId
 
 
-class Area(BaseModel):
+class AreaBase(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     area: str
     status: bool = True
@@ -20,4 +20,32 @@ class Area(BaseModel):
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
-    
+
+class AreaRead(AreaBase):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    area: str
+    status: bool = True
+    chemicals: list[str]
+    leader: str | None = None
+    last_update_by: str | None
+    last_update_date: datetime = datetime.now()
+
+class AreaUpdate(AreaBase):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    area: str
+    status: bool = True
+    chemicals: list[str]
+    leader: str | None = None
+    last_update_by: str | None
+    last_update_date: datetime = datetime.now()
+
+class AreaRead(AreaBase):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    area: str
+    status: bool = True
+    chemicals: list[str]
+    leader: str | None = None
+    last_update_by: str | None
+    last_update_date: datetime = datetime.now()
+
+

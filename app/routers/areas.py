@@ -1,22 +1,8 @@
-from fastapi import APIRouter, Body, Query, Path, Depends
+from fastapi import APIRouter
 
-from app.core.auth import get_current_user, login_for_access_token, validate_role
-from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
-from app.db.database import db
-from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation
-from app.models.py_object_id import PyObjectId
-from app.models.role import Role
-from app.models.token import Token
-from app.models.user import UserRead, UserCreate, UserUpdate
-from app.models.query_status import QueryStatus
+areas = APIRouter(prefix="/areas", tags=["Áreas"])
 
-users = APIRouter(prefix='/users', tags=['Usuarios'])
-
-users_collection = db.users
-areas_collection = db.areas
-roles_collection = db.roles
-
-@users.get('/', name="Obtener usuarios", response_model=list[UserRead], status_code=200)
+@areas.get('/', name="Obtener usuarios", response_model=list[UserRead], status_code=200)
 async def get_users(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
     limit: int = Query(10, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
@@ -32,7 +18,7 @@ async def get_users(
     users = await multiple_populate(users, "role", roles_collection)
     return users
 
-@users.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
+@areas.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
 async def get_user(
     id: PyObjectId = Path(..., title="ID del Usuario", description="El MongoID del usuario a buscar"),
     active_user: UserRead = Depends(get_current_user)
@@ -47,7 +33,7 @@ async def get_user(
     user = await populate(user, "role", roles_collection)
     return user
 
-@users.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
+@areas.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
 async def create_user(
     user: UserCreate = Body(..., title="Datos del Usuario", description="Datos del usuario a crear"),
     active_user: UserRead = Depends(get_current_user)
@@ -65,7 +51,7 @@ async def create_user(
     new_user = await populate(new_user, "role", roles_collection)
     return new_user
 
-@users.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)
+@areas.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)
 async def update_user(
     id: PyObjectId =  Path(..., title="ID del Usuario", description="El MongoID del usuario a actualizar"),
     new_data: UserUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar al usuario."),
@@ -84,18 +70,3 @@ async def update_user(
     updated_user = await populate(updated_user, "areas", areas_collection, "area")
     updated_user = await populate(updated_user, "role", roles_collection)
     return updated_user
-
-
-@users.post("/login", response_model=Token)
-async def login(token: Token = Depends(login_for_access_token)):
-    return token
-    
-
-@users.get('/role/', name="Obtener Roles", response_model=list[Role], status_code=200)
-async def get_roles(active_user: UserRead = Depends(get_current_user))->list:
-    """
-    Obtiene todos los roles en la base de datos.
-    """
-    await validate_role(active_user)
-    roles = await get_documents(roles_collection)
-    return roles
