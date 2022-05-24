@@ -29,7 +29,7 @@ async def get_users(
     status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los usuarios activos, inactivos o todos"),
     )->list:
     """
-    Obtiene todos los usuarios de a base de datos.
+    Obtiene todos los usuarios en la base de datos.
     """
     users = await get_documents(users_collection, skip, limit, status)
     users = await multiple_populate(users, "areas", areas_collection, "area")
@@ -84,6 +84,15 @@ async def update_user(
 async def login(token: Token = Depends(login_for_access_token)):
     return token
     
+
+@users.get('/role/', name="Obtener Roles", response_model=list[Role], status_code=200)
+async def get_roles()->list:
+    """
+    Obtiene todos los roles en la base de datos.
+    """
+    roles = await get_documents(roles_collection)
+    return roles
+
 
 @users.get('/role/{id}',name="Obtener Rol", response_model=Role, status_code=200)
 async def get_role(id: PyObjectId = Path(..., title="ID del Rol", description="El MongoID del rol a buscar"))->dict:

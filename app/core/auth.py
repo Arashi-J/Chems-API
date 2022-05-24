@@ -9,13 +9,13 @@ from app.db.database import db
 from app.crud.crud import get_document_by_query
 from app.models.token import TokenData
 
-oauth2 = OAuth2PasswordBearer(tokenUrl='login')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
 users_collection = db.users
 
 async def authenticate_user(collection, username: str, password: str):
     user = await get_document_by_query({"username": username}, collection)
-    if not user:
+    if not user or not user["status"]:
         return False
     if not verify_password(password, user["password"]):
         return False
@@ -49,7 +49,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-async def get_current_user(token: str = Depends(oauth2)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="No se pudo validar las credenciales del usuario",
@@ -63,11 +63,11 @@ async def get_current_user(token: str = Depends(oauth2)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+    print (token_data.dict())
     user = await get_document_by_query(token_data.dict(), users_collection)
     if user is None:
         raise credentials_exception
-    # if not user["status"]:
-    #     raise HTTPException(status_code=400, detail="Usuario Deshabilitado")
+    if not user["status"]:
+        raise HTTPException(status_code=400, detail="Usuario Deshabilitado")
     return user
 
