@@ -1,10 +1,14 @@
 from datetime import datetime
 
 from bson import ObjectId
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator, AnyUrl
+from app.helpers.helpers import p_phrase_code_normalizer, h_phrase_code_normalizer, text_normalizer_title
+from app.models.approval import Approval
 from app.models.hazard import Hazard
+from app.models.phrase import Phrase
 
 from app.models.py_object_id import PyObjectId
+
 
 
 class ChemicalBase(BaseModel):
@@ -14,29 +18,22 @@ class ChemicalBase(BaseModel):
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
 
-    class Approval(BaseModel):
-        approval: bool  | None = None
-        approver: str | None = None
-        approval_date: datetime  | None = None
 
-    class Phrase(BaseModel):
-        code: str
-        description: str
     
     chemical: str
-    hazards: list[PyObjectId] | None = None
-    providers: list[str] | None = None
-    manufacturers: list[str] | None = None
-    p_phrases: list[Phrase] | None = None
-    h_phrases: list[Phrase] | None = None
-    ppes: list[PyObjectId] | None = None
-    sds: list[str]  | None = None
-    fsms: Approval | None = None
-    ems: Approval | None = None  
-    oshms: Approval | None = None
+    hazards: list[PyObjectId] = []
+    providers: list[str] = []
+    manufacturers: list[str] = []
+    p_phrases: list[Phrase] = []
+    h_phrases: list[Phrase] = []
+    ppes: list[PyObjectId] = []
+    sds: list[AnyUrl] = []
     status: bool = True
-    last_update_by: str | None
-    last_update_date: datetime = datetime.now()
+
+
+    _normalize_chemical = validator("chemical", allow_reuse=True)(text_normalizer_title)
+    _normalize_p_phrases = validator("p_phrases", allow_reuse=True, each_item=True)(p_phrase_code_normalizer)
+    _normalize_h_phrases = validator("h_phrases", allow_reuse=True, each_item=True)(h_phrase_code_normalizer)
 
 class ChemicalCreate(ChemicalBase):
     pass
@@ -47,4 +44,9 @@ class ChemicalUpdate(ChemicalBase):
 
 class ChemicalRead(ChemicalBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del Usuario", description="MongoID")
+    last_update_by: str | None
+    last_update_date: datetime = datetime.now()
+    fsms: Approval | None = None
+    ems: Approval | None = None  
+    oshms: Approval | None = None
     #hazards: list[Hazard]

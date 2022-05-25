@@ -20,7 +20,8 @@ async def get_document_by_query(query: dict, collection)->dict | None:
         return None
 
 async def create_documents(document: BaseModel, collection)->dict:
-    document = document.dict()
+    
+    document = document.dict() if type(document) is not dict else document
     new_document = await collection.insert_one(document)
     created_document = await get_document_by_id(new_document.inserted_id, collection)
     return created_document

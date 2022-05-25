@@ -1,6 +1,9 @@
+from datetime import datetime
+import re
 import unicodedata
 from fastapi import HTTPException
 from pydantic import BaseModel
+from app.models.phrase import Phrase
 
 from app.models.py_object_id import PyObjectId
 
@@ -121,4 +124,36 @@ def drop_duplicates(input: list)->list:
     finally :
         return input
 
+#TODO These functions
+def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
+    
+    p_phrase = p_phrase.dict()
 
+    phrase_code = p_phrase["code"]
+
+    phrase_code = "P" + re.sub("[^0-9]", "", phrase_code)
+
+    p_phrase["code"] = phrase_code    
+
+    return p_phrase
+
+def h_phrase_code_normalizer(h_phrase: Phrase)->dict:
+    
+    h_phrase = h_phrase.dict()
+
+    phrase_code = h_phrase["code"]
+
+    phrase_code = "H" + re.sub("[^0-9]", "", phrase_code)
+
+    h_phrase["code"] = phrase_code    
+
+    return h_phrase
+
+def set_update_info(item: dict | BaseModel, user: dict)->dict:
+    item = item.dict() if type(item) is not dict else item
+    item["last_update_date"] = datetime.now
+    item["last_update_by"] = user["_id"]
+    return item
+
+def chemical_approval(chemical: dict)->dict:
+    return chemical

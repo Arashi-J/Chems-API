@@ -1,22 +1,22 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, Body
 
 from app.core.auth import get_current_user, validate_role
-from app.crud.crud import get_documents
+from app.crud.crud import create_documents, get_documents
 from app.db.database import db
-from app.helpers.helpers import multiple_populate
-from app.models.chemical import ChemicalRead
+from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_update_info
+from app.models.chemical import ChemicalCreate, ChemicalRead
 from app.models.py_object_id import PyObjectId
 from app.models.query_status import QueryStatus
 from app.models.user import UserRead
 
-chemicals = APIRouter(prefix="/chemicals", tags=["Químicos"])
+chemicals = APIRouter(prefix="/chemicals", tags=["Sustancias Químicas"])
 
 chemicals_collection = db.chemicals
 hazards_collection = db.hazards
 ppes_collection = db.ppes
 
-@chemicals.get('/', name="Obtener áreas", response_model=list[ChemicalRead], status_code=200)
-async def get_users(
+@chemicals.get('/', name="Obtener sustancias químicas", response_model=list[ChemicalRead], status_code=200)
+async def get_chemicals(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
     limit: int = Query(10, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
     status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los químicos activos, inactivos o todos"),
@@ -32,7 +32,7 @@ async def get_users(
     return areas
 
 # @chemicals.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
-# async def get_user(
+# async def get_chemical(
 #     id: PyObjectId = Path(..., title="ID del Usuario", description="El MongoID del usuario a buscar"),
 #     active_user: UserRead = Depends(get_current_user)
 #     )->dict:
@@ -46,26 +46,26 @@ async def get_users(
 #     user = await populate(user, "role", roles_collection)
 #     return user
 
-# @chemicals.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
-# async def create_user(
-#     user: UserCreate = Body(..., title="Datos del Usuario", description="Datos del usuario a crear"),
-#     active_user: UserRead = Depends(get_current_user)
-#     )->dict:
-#     """
-#     Crea un usuario. Retorna el usuario Creado.
-#     """
-#     await validate_role(active_user)
-#     await db_validation(user, "username", users_collection)
-#     await db_validation(user, "email", users_collection)
-#     await db_validation(user, "role", roles_collection, False, True)
-#     await multiple_db_validation(user, "areas", areas_collection)
-#     new_user = await create_documents(user, users_collection)
-#     new_user = await populate(new_user, "areas", areas_collection, "area")
-#     new_user = await populate(new_user, "role", roles_collection)
-#     return new_user
+@chemicals.post('/',name="Crear sustancia química", response_model=ChemicalRead, status_code=201)
+async def create_chemical(
+    chemical: ChemicalCreate = Body(..., title="Datos del la sustancia química", description="Datos de la sustancia química a crear"),
+    active_user: UserRead = Depends(get_current_user)
+    )->dict:
+    """
+    Crea una sustancia química. Retorna la sustancia química creada.
+    """
+    await validate_role(active_user)
+    await db_validation(chemical, "chemical", chemicals_collection)
+    # await multiple_db_validation(chemical, "hazards", hazards_collection)
+    # await multiple_db_validation(chemical, "ppes", ppes_collection)
+    chemical = set_update_info(chemical, active_user)
+    new_chemical = await create_documents(chemical, chemicals_collection)
+    # new_user = await populate(new_user, "hazards", hazards_collection)
+    # new_user = await populate(new_user, "ppes", ppes_collection)
+    return new_chemical
 
 # @chemicals.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)
-# async def update_user(
+# async def update_chemical(
 #     id: PyObjectId =  Path(..., title="ID del Usuario", description="El MongoID del usuario a actualizar"),
 #     new_data: UserUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar al usuario."),
 #     active_user: UserRead = Depends(get_current_user)

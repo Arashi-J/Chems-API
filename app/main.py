@@ -37,7 +37,8 @@ app = FastAPI(
     openapi_tags=tags_metadata
 )
 
-app.include_router([users, chemicals])
+app.include_router(users)
+app.include_router(chemicals)
 
 #For serving static Files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
