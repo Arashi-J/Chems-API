@@ -3,12 +3,12 @@ from fastapi import APIRouter, Body, Query, Path, Depends
 from app.core.auth import get_current_user, login_for_access_token, validate_role
 from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
 from app.db.database import db
-from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation
+from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_update_info
 from app.models.py_object_id import PyObjectId
 from app.models.role import Role
 from app.models.token import Token
 from app.models.user import UserRead, UserCreate, UserUpdate
-from app.models.query_status import QueryStatus
+from app.models.enums import QueryStatus
 
 users = APIRouter(prefix='/users', tags=['Usuarios'])
 
@@ -60,6 +60,7 @@ async def create_user(
     await db_validation(user, "email", users_collection)
     await db_validation(user, "role", roles_collection, False, True)
     await multiple_db_validation(user, "areas", areas_collection)
+    user = set_update_info(user, active_user)
     new_user = await create_documents(user, users_collection)
     new_user = await populate(new_user, "areas", areas_collection, "area")
     new_user = await populate(new_user, "role", roles_collection)

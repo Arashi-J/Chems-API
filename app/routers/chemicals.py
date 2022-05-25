@@ -1,19 +1,19 @@
-from fastapi import APIRouter, Query, Depends, Body
+from fastapi import APIRouter, Query, Depends, Body, Path
 
 from app.core.auth import get_current_user, validate_role
 from app.crud.crud import create_documents, get_documents
 from app.db.database import db
-from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_update_info
+from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_approval_info, set_update_info
 from app.models.chemical import ChemicalCreate, ChemicalRead
 from app.models.py_object_id import PyObjectId
-from app.models.query_status import QueryStatus
+from app.models.enums import QueryStatus
 from app.models.user import UserRead
 
 chemicals = APIRouter(prefix="/chemicals", tags=["Sustancias Químicas"])
 
 chemicals_collection = db.chemicals
 hazards_collection = db.hazards
-ppes_collection = db.ppes
+ppes_collection = db.ppes   
 
 @chemicals.get('/', name="Obtener sustancias químicas", response_model=list[ChemicalRead], status_code=200)
 async def get_chemicals(
@@ -31,7 +31,7 @@ async def get_chemicals(
     areas = await multiple_populate(areas, "ppes", ppes_collection, "ppe")
     return areas
 
-# @chemicals.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
+# @chemicals.get('/{id}',name="Obtener sustancia química", response_model=UserRead, status_code=200)
 # async def get_chemical(
 #     id: PyObjectId = Path(..., title="ID del Usuario", description="El MongoID del usuario a buscar"),
 #     active_user: UserRead = Depends(get_current_user)
@@ -59,6 +59,7 @@ async def create_chemical(
     # await multiple_db_validation(chemical, "hazards", hazards_collection)
     # await multiple_db_validation(chemical, "ppes", ppes_collection)
     chemical = set_update_info(chemical, active_user)
+    chemical = set_approval_info(chemical)
     new_chemical = await create_documents(chemical, chemicals_collection)
     # new_user = await populate(new_user, "hazards", hazards_collection)
     # new_user = await populate(new_user, "ppes", ppes_collection)
@@ -83,3 +84,12 @@ async def create_chemical(
 #     updated_user = await populate(updated_user, "areas", areas_collection, "area")
 #     updated_user = await populate(updated_user, "role", roles_collection)
 #     return updated_user
+
+@chemicals.put('/approval/{id}', name="Aprobar sustancia química", response_model=ChemicalRead, status_code=202)
+async def chemical_approval(
+    id: PyObjectId = Path(..., title="ID de la sustancia química", description="El MongoID de la sustancia química a aprobar"),
+    active_user: UserRead = Depends(get_current_user)
+    
+    ):
+    #set_approval_info()
+    pass

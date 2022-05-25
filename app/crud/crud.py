@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from app.models.py_object_id import PyObjectId
-from app.models.query_status import QueryStatus
+from app.models.enums import QueryStatus
 
 async def get_documents(collection, skip: int = 0, limit: int = 20, status = QueryStatus.all)->list:   
     query = {"status": True} if status == QueryStatus.active else {"status": False} if status == QueryStatus.inactive else {}

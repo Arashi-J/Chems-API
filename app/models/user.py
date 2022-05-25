@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field, validator
 from bson import ObjectId
 
@@ -46,4 +48,5 @@ class UserRead(UserBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del Usuario", description="MongoID")
     areas: list[dict] = Field(..., title="Áreas del Usuario", description="Áreas que puede editar el usuario.")
     role: dict = Field(..., title="Rol del Usuario", description="Los permisos del usuario se asignan de acuerdo al rol.")
-
+    last_update_by: PyObjectId | None
+    last_update_date: datetime | None

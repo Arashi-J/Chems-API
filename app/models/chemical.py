@@ -2,14 +2,12 @@ from datetime import datetime
 
 from bson import ObjectId
 from pydantic import BaseModel, Field, validator, AnyUrl
+
 from app.helpers.helpers import p_phrase_code_normalizer, h_phrase_code_normalizer, text_normalizer_title
 from app.models.approval import Approval
 from app.models.hazard import Hazard
 from app.models.phrase import Phrase
-
 from app.models.py_object_id import PyObjectId
-
-
 
 class ChemicalBase(BaseModel):
 
@@ -18,8 +16,6 @@ class ChemicalBase(BaseModel):
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
 
-
-    
     chemical: str
     hazards: list[PyObjectId] = []
     providers: list[str] = []
@@ -29,7 +25,6 @@ class ChemicalBase(BaseModel):
     ppes: list[PyObjectId] = []
     sds: list[AnyUrl] = []
     status: bool = True
-
 
     _normalize_chemical = validator("chemical", allow_reuse=True)(text_normalizer_title)
     _normalize_p_phrases = validator("p_phrases", allow_reuse=True, each_item=True)(p_phrase_code_normalizer)
@@ -43,9 +38,9 @@ class ChemicalUpdate(ChemicalBase):
     status: bool | None = None
 
 class ChemicalRead(ChemicalBase):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del Usuario", description="MongoID")
-    last_update_by: str | None
-    last_update_date: datetime = datetime.now()
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
+    last_update_by: PyObjectId | None
+    last_update_date: datetime
     fsms: Approval | None = None
     ems: Approval | None = None  
     oshms: Approval | None = None

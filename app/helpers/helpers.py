@@ -3,6 +3,8 @@ import re
 import unicodedata
 from fastapi import HTTPException
 from pydantic import BaseModel
+from app.models.approval import Approval
+from app.models.enums import ApprovalType
 from app.models.phrase import Phrase
 
 from app.models.py_object_id import PyObjectId
@@ -124,15 +126,11 @@ def drop_duplicates(input: list)->list:
     finally :
         return input
 
-#TODO These functions
 def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
     
     p_phrase = p_phrase.dict()
-
     phrase_code = p_phrase["code"]
-
     phrase_code = "P" + re.sub("[^0-9]", "", phrase_code)
-
     p_phrase["code"] = phrase_code    
 
     return p_phrase
@@ -140,19 +138,41 @@ def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
 def h_phrase_code_normalizer(h_phrase: Phrase)->dict:
     
     h_phrase = h_phrase.dict()
-
     phrase_code = h_phrase["code"]
-
     phrase_code = "H" + re.sub("[^0-9]", "", phrase_code)
-
     h_phrase["code"] = phrase_code    
 
     return h_phrase
 
+#TODO These functions
 def set_update_info(item: dict | BaseModel, user: dict)->dict:
     item = item.dict() if type(item) is not dict else item
-    item["last_update_date"] = datetime.now
+    item["last_update_date"] = datetime.utcnow()
     item["last_update_by"] = user["_id"]
+    return item
+
+def set_approval_info(item: dict | BaseModel, approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
+    item = item.dict() if type(item) is not dict else item
+    
+    if not approver:
+        approval_info = Approval().dict()
+        item[ApprovalType.ems] = approval_info
+        item[ApprovalType.fsms] = approval_info
+        item[ApprovalType.ohsms] = approval_info
+
+    if approver:
+        approver_role = approver["role"]
+        print(approver_role)
+        approver_id = approver["_id"]
+
+        if approval_type == ApprovalType.ems:
+            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+        
+        if approval_type == ApprovalType.fsms:
+            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+        
+        if approval_type == ApprovalType.ohsms:
+            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
     return item
 
 def chemical_approval(chemical: dict)->dict:
