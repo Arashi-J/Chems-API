@@ -92,7 +92,7 @@ async def login(token: Token = Depends(login_for_access_token)):
     return token
     
 
-@users.get('/role/', name="Obtener Roles", response_model=list[Role], status_code=200)
+@users.get('/roles/', name="Obtener Roles", response_model=list[Role], status_code=200)
 async def get_roles(active_user: UserRead = Depends(get_current_user))->list:
     """
     Obtiene todos los roles en la base de datos.
@@ -100,3 +100,16 @@ async def get_roles(active_user: UserRead = Depends(get_current_user))->list:
     await validate_role(active_user)
     roles = await get_documents(roles_collection)
     return roles
+
+@users.get('/roles/{id}', name="Obtener rol", response_model=Role, status_code=200)
+async def get_user(
+    id: PyObjectId = Path(..., title="ID del rol", description="El MongoID del rol a buscar"),
+    active_user: UserRead = Depends(get_current_user)
+    )->dict:
+    """
+    Obtiene el usuario correspondiente al ID ingresado.
+    """
+    await validate_role(active_user)
+    await db_validation(None, None, roles_collection, False, True, id)
+    role = await get_document_by_id(id, roles_collection)
+    return role

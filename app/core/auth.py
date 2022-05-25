@@ -72,7 +72,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=400, detail="Usuario Deshabilitado")
     return user
 
-async def validate_role(user: UserRead, allowd_roles: list[str] = []):
+async def validate_role(user: dict, allowd_roles: list[str] = []):
     user_role = dict(await get_document_by_id(user["role"], roles_collection))["role"]
     if not user_role == "admin" and user_role not in allowd_roles:
         raise HTTPException(status_code=403, detail="El usuario no tiene los permisos suficientes para realizar la operación")

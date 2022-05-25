@@ -96,11 +96,12 @@ async def multiple_db_validation(
     """
     Verifica en un iterable que los con Mongo IDs en el campo iterable tengan un valor que exista en la base de datos.
     """
+
     try:
         for nested_id in data_in.dict()[field_to_validate]:
             await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
     except:
-        pass
+        raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
 
 
 def text_normalizer_title(text:str)->str:
@@ -144,15 +145,15 @@ def h_phrase_code_normalizer(h_phrase: Phrase)->dict:
 
     return h_phrase
 
-#TODO These functions
 def set_update_info(item: dict | BaseModel, user: dict)->dict:
     item = item.dict() if type(item) is not dict else item
     item["last_update_date"] = datetime.utcnow()
     item["last_update_by"] = user["_id"]
     return item
 
-def set_approval_info(item: dict | BaseModel, approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
-    item = item.dict() if type(item) is not dict else item
+#TODO These functions
+def set_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
+    item = {}
     
     if not approver:
         approval_info = Approval().dict()
@@ -162,17 +163,22 @@ def set_approval_info(item: dict | BaseModel, approver: dict | None = None, appr
 
     if approver:
         approver_role = approver["role"]
-        print(approver_role)
         approver_id = approver["_id"]
 
         if approval_type == ApprovalType.ems:
+            if approver_role not in ["admin", "ems_approver"]:
+                raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
             item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
         
         if approval_type == ApprovalType.fsms:
-            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+            if approver_role not in ["admin", "fsms_approver"]:
+                raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
+            item[ApprovalType.fsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
         
         if approval_type == ApprovalType.ohsms:
-            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+            if approver_role not in ["admin", "ohsms_approver"]:
+                raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
+            item[ApprovalType.ohsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
     return item
 
 def chemical_approval(chemical: dict)->dict:

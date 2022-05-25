@@ -15,7 +15,19 @@ tags_metadata = [
     {
     "name": "Usuarios",
     "description": """
-        Administra las operaciones con usuarios, incluyendo el login.
+        Administra las operaciones con los usuarios, incluyendo la autenticación y los roles.
+    """
+    },
+        {
+    "name": "Áreas",
+    "description": """
+        Administra las operaciones con las áreas.
+    """
+    },
+    {
+    "name": "Sustancias Químicas",
+    "description": """
+        Administra las operaciones con las sustancias químicas, incluyendo los peligros y los EPP.
     """
     }
 ]
@@ -26,8 +38,8 @@ app = FastAPI(
     version="0.0.1",
     contact={
         "name": "Juan Perez",
-        "url": "http://url.com",
-        "email": "mail@mail.com"
+        "url": "https://github.com/Arashi-J",
+        "email": "juan.perez@mail.com"
         },
     license_info= 
     {
