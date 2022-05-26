@@ -28,10 +28,10 @@ class ChemicalBase(BaseModel):
     status: bool = True
 
     _normalize_chemical = validator("chemical", allow_reuse=True)(text_normalizer_title)
+    _normalize_arrays = validator("providers", "manufacturers", "sds", allow_reuse=True, each_item=True)(text_normalizer_title)
     _normalize_p_phrases = validator("p_phrases", allow_reuse=True, each_item=True)(p_phrase_code_normalizer)
     _normalize_h_phrases = validator("h_phrases", allow_reuse=True, each_item=True)(h_phrase_code_normalizer)
-    _normalize_hazards = validator("hazards", check_fields=False, allow_reuse=True)(drop_duplicates)
-    _normalize_ppes = validator("ppes", check_fields=False, allow_reuse=True)(drop_duplicates)
+    _remove_duplicates_list_values = validator("hazards", "ppes", "p_phrases", "h_phrases", "sds", "manufacturers", "providers", check_fields=False, allow_reuse=True)(drop_duplicates)
 
 class ChemicalCreate(ChemicalBase):
     pass
@@ -46,6 +46,6 @@ class ChemicalRead(ChemicalBase):
     last_update_date: datetime
     fsms: Approval | None = None
     ems: Approval | None = None  
-    oshms: Approval | None = None
+    ohsms: Approval | None = None
     hazards: list[Hazard]
     ppes: list[Ppe]

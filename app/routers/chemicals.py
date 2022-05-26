@@ -9,7 +9,6 @@ from app.models.hazard import Hazard
 from app.models.ppe import Ppe
 from app.models.py_object_id import PyObjectId
 from app.models.enums import ApprovalType, QueryStatus
-from app.models.user import UserRead
 
 chemicals = APIRouter(prefix="/chemicals", tags=["Sustancias Químicas"])
 
@@ -47,7 +46,7 @@ async def get_chemical(
 @chemicals.post('/',name="Crear sustancia química", response_model=ChemicalRead, status_code=201)
 async def create_chemical(
     chemical: ChemicalCreate = Body(..., title="Datos del la sustancia química", description="Datos de la sustancia química a crear"),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Crea una sustancia química. Retorna la sustancia química creada.
@@ -56,7 +55,7 @@ async def create_chemical(
     await multiple_db_validation(chemical, "hazards", hazards_collection)
     await multiple_db_validation(chemical, "ppes", ppes_collection)
     chemical = set_update_info(chemical, active_user)
-    chemical = set_approval_info(chemical)
+    chemical.update(await set_approval_info())
     new_chemical = await create_documents(chemical, chemicals_collection)
     new_chemical = await populate(new_chemical, "hazards", hazards_collection)
     new_chemical = await populate(new_chemical, "ppes", ppes_collection)
@@ -66,7 +65,7 @@ async def create_chemical(
 async def update_chemical(
     id: PyObjectId =  Path(..., title="ID de la sustancia química", description="El MongoID de la sustancia química a actualizar"),
     new_data: ChemicalUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar a la sustancia química."),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Actualiza los datos de la sustancia química del ID ingresado. Retorna la sustancia química actualizada.
@@ -85,16 +84,16 @@ async def update_chemical(
 async def chemical_approval(
     id: PyObjectId = Path(..., title="ID de la sustancia química", description="El MongoID de la sustancia química a aprobar"),
     approval_type: ApprovalType = Query(..., title="Tipo de Aprobación", description="Determina para qué sistema de gestión se reailizará la aprobación"),
-    active_user: UserRead = Depends(get_current_user)    
+    active_user = Depends(get_current_user)    
     )->dict:
     await validate_role(active_user, ["ems_approver", "fsms_approver", "ohsms_approver"])
     await db_validation(None, None, chemicals_collection, False, True, id)
 
-    approval_data = set_approval_info(active_user, approval_type)
-    updated_chemical = await update_document(id, chemicals_collection, approval_data)    
-    updated_chemical = await populate(updated_chemical, "hazards", hazards_collection)
-    updated_chemical = await populate(updated_chemical, "ppes", ppes_collection)
-
+    approval_data = await set_approval_info(active_user, approval_type)
+    approved_chemical = await update_document(id, chemicals_collection, approval_data)    
+    approved_chemical = await populate(approved_chemical, "hazards", hazards_collection)
+    approved_chemical = await populate(approved_chemical, "ppes", ppes_collection)
+    return approved_chemical
 
 @chemicals.get('/hazards/', name="Obtener peligros", response_model=list[Hazard], status_code=200, dependencies=[Depends(get_current_user)])
 async def get_chemicals(

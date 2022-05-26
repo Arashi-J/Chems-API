@@ -3,6 +3,8 @@ import re
 import unicodedata
 from fastapi import HTTPException
 from pydantic import BaseModel
+from app.crud.crud import get_document_by_id
+from app.db.database import db
 from app.models.approval import Approval
 from app.models.enums import ApprovalType
 from app.models.phrase import Phrase
@@ -151,35 +153,35 @@ def set_update_info(item: dict | BaseModel, user: dict)->dict:
     item["last_update_by"] = user["_id"]
     return item
 
-#TODO These functions
-def set_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
-    item = {}
+
+async def set_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
+    approval_info = {}
     
     if not approver:
-        approval_info = Approval().dict()
-        item[ApprovalType.ems] = approval_info
-        item[ApprovalType.fsms] = approval_info
-        item[ApprovalType.ohsms] = approval_info
+        empty_approval = Approval().dict()
+        approval_info[ApprovalType.ems] = empty_approval
+        approval_info[ApprovalType.fsms] = empty_approval
+        approval_info[ApprovalType.ohsms] = empty_approval
 
     if approver:
-        approver_role = approver["role"]
+        approver_role = dict(await get_document_by_id(approver["role"], db.roles))["role"]
         approver_id = approver["_id"]
 
         if approval_type == ApprovalType.ems:
             if approver_role not in ["admin", "ems_approver"]:
                 raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
-            item[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+            approval_info[ApprovalType.ems] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
         
         if approval_type == ApprovalType.fsms:
             if approver_role not in ["admin", "fsms_approver"]:
                 raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
-            item[ApprovalType.fsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+            approval_info[ApprovalType.fsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
         
         if approval_type == ApprovalType.ohsms:
             if approver_role not in ["admin", "ohsms_approver"]:
                 raise HTTPException(status_code=403, detail="El usuario no tiene el rol requerido para realizar esta acción")
-            item[ApprovalType.ohsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
-    return item
+            approval_info[ApprovalType.ohsms] = Approval(approval=True, approbed_by=approver_id, approval_date=datetime.utcnow()).dict()
+    
+    return approval_info
 
-def chemical_approval(chemical: dict)->dict:
-    return chemical
+#TODO approval validation before

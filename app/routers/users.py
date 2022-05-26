@@ -21,7 +21,7 @@ async def get_users(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
     limit: int = Query(10, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
     status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los usuarios activos, inactivos o todos"),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->list:
     """
     Obtiene todos los usuarios en la base de datos.
@@ -35,7 +35,7 @@ async def get_users(
 @users.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
 async def get_user(
     id: PyObjectId = Path(..., title="ID del Usuario", description="El MongoID del usuario a buscar"),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Obtiene el usuario correspondiente al ID ingresado.
@@ -50,7 +50,7 @@ async def get_user(
 @users.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
 async def create_user(
     user: UserCreate = Body(..., title="Datos del Usuario", description="Datos del usuario a crear"),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Crea un usuario. Retorna el usuario Creado.
@@ -70,7 +70,7 @@ async def create_user(
 async def update_user(
     id: PyObjectId =  Path(..., title="ID del Usuario", description="El MongoID del usuario a actualizar"),
     new_data: UserUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar al usuario."),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
@@ -93,7 +93,7 @@ async def login(token: Token = Depends(login_for_access_token)):
     
 
 @users.get('/roles/', name="Obtener Roles", response_model=list[Role], status_code=200)
-async def get_roles(active_user: UserRead = Depends(get_current_user))->list:
+async def get_roles(active_user = Depends(get_current_user))->list:
     """
     Obtiene todos los roles en la base de datos.
     """
@@ -104,7 +104,7 @@ async def get_roles(active_user: UserRead = Depends(get_current_user))->list:
 @users.get('/roles/{id}', name="Obtener rol", response_model=Role, status_code=200)
 async def get_user(
     id: PyObjectId = Path(..., title="ID del rol", description="El MongoID del rol a buscar"),
-    active_user: UserRead = Depends(get_current_user)
+    active_user = Depends(get_current_user)
     )->dict:
     """
     Obtiene el usuario correspondiente al ID ingresado.
