@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.users import users
 from app.routers.chemicals import chemicals
+from app.routers.areas import areas
 from app.core.config import get_settings
 
 description = """
@@ -51,6 +52,7 @@ app = FastAPI(
 
 app.include_router(users)
 app.include_router(chemicals)
+app.include_router(areas)
 
 #For serving static Files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

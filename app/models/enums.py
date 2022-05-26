@@ -6,6 +6,6 @@ class QueryStatus(str, Enum):
     all = "todos"
 
 class ApprovalType(str, Enum):
-    fsms = "fsms"
     ems = "ems"
+    fsms = "fsms"
     ohsms = "ohsms"

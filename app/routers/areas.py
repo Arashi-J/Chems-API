@@ -1,72 +1,75 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Query, Path, Body
+
+from app.core.auth import get_current_user, validate_role
+from app.crud.crud import create_document, get_document_by_id, get_documents, update_document
+from app.db.database import db
+from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_update_info
+from app.models.area import AreaCreate, AreaRead, AreaUpdate
+from app.models.enums import QueryStatus
+from app.models.py_object_id import PyObjectId
 
 areas = APIRouter(prefix="/areas", tags=["Áreas"])
 
-@areas.get('/', name="Obtener usuarios", response_model=list[UserRead], status_code=200)
-async def get_users(
+areas_collection = db.areas
+chemicals_collection = db.chemicals
+
+@areas.get('/', name="Obtener áreas", response_model=list[AreaRead], status_code=200, dependencies=[Depends(get_current_user)])
+async def get_areas(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
     limit: int = Query(10, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
-    status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los usuarios activos, inactivos o todos"),
-    active_user: UserRead = Depends(get_current_user)
+    status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los químicos activos, inactivos o todos"),
     )->list:
     """
-    Obtiene todos los usuarios en la base de datos.
+    Obtiene todas las áreas en la base de datos.
     """
-    await validate_role(active_user)
-    users = await get_documents(users_collection, skip, limit, status)
-    users = await multiple_populate(users, "areas", areas_collection, "area")
-    users = await multiple_populate(users, "role", roles_collection)
-    return users
+    areas = await get_documents(areas_collection, skip, limit, status)
+    areas = await multiple_populate(areas, "chemicals", chemicals_collection, "chemical")
 
-@areas.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
-async def get_user(
-    id: PyObjectId = Path(..., title="ID del Usuario", description="El MongoID del usuario a buscar"),
-    active_user: UserRead = Depends(get_current_user)
+    return areas
+
+@areas.get('/{id}',name="Obtener áreas", response_model=AreaRead, status_code=200, dependencies=[Depends(get_current_user)])
+async def get_chemical(
+    id: PyObjectId = Path(..., title="ID del área", description="El MongoID del área a buscar"),
     )->dict:
     """
-    Obtiene el usuario correspondiente al ID ingresado.
+    Obtiene área correspondiente al ID ingresado.
     """
-    await validate_role(active_user)
-    await db_validation(None, None, users_collection, False, True, id)
-    user = await get_document_by_id(id, users_collection)
-    user = await populate(user, "areas", areas_collection, "area")
-    user = await populate(user, "role", roles_collection)
-    return user
+    await db_validation(None, None, areas_collection, False, True, id)
+    area = await get_document_by_id(id, areas_collection)
+    area = await populate(area, "chemicals", chemicals_collection, "chemical")
 
-@areas.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
-async def create_user(
-    user: UserCreate = Body(..., title="Datos del Usuario", description="Datos del usuario a crear"),
-    active_user: UserRead = Depends(get_current_user)
+    return area
+
+@areas.post('/',name="Crear área", response_model=AreaRead, status_code=201)
+async def create_chemical(
+    area: AreaCreate = Body(..., title="Datos del árer", description="Datos del área a crear"),
+    active_user = Depends(get_current_user)
     )->dict:
     """
-    Crea un usuario. Retorna el usuario Creado.
+    Crea una área. Retorna el área creada.
     """
     await validate_role(active_user)
-    await db_validation(user, "username", users_collection)
-    await db_validation(user, "email", users_collection)
-    await db_validation(user, "role", roles_collection, False, True)
-    await multiple_db_validation(user, "areas", areas_collection)
-    new_user = await create_documents(user, users_collection)
-    new_user = await populate(new_user, "areas", areas_collection, "area")
-    new_user = await populate(new_user, "role", roles_collection)
-    return new_user
+    await db_validation(area, "area", areas_collection)
+    await multiple_db_validation(area, "chemicals", chemicals_collection)
+    area = set_update_info(area, active_user)
+    new_area = await create_document(area, areas_collection)
+    new_area = await populate(new_area, "chemicals", chemicals_collection, "chemical")
+    return new_area
 
-@areas.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)
-async def update_user(
-    id: PyObjectId =  Path(..., title="ID del Usuario", description="El MongoID del usuario a actualizar"),
-    new_data: UserUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar al usuario."),
-    active_user: UserRead = Depends(get_current_user)
+@areas.put('/{id}',name="Actualizar área", response_model=AreaRead, status_code=202)
+async def update_chemical(
+    id: PyObjectId =  Path(..., title="ID del área", description="El MongoID del área a actualizar"),
+    new_data: AreaUpdate = Body(..., title="Datos Nuevos", description="Nueva información a actualizar al área."),
+    active_user = Depends(get_current_user)
     )->dict:
     """
-    Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
+    Actualiza los datos del área del ID ingresado. Retorna el área actualizada.
     """
-    await validate_role(active_user)
-    await db_validation(None, None, users_collection, False, True, id)
-    await db_validation(new_data, "username", users_collection)
-    await db_validation(new_data, "email", users_collection)
-    await db_validation(new_data, "role", roles_collection, False, True)
-    await multiple_db_validation(new_data, "areas", areas_collection)
-    updated_user = await update_document(id, users_collection, new_data)    
-    updated_user = await populate(updated_user, "areas", areas_collection, "area")
-    updated_user = await populate(updated_user, "role", roles_collection)
-    return updated_user
+    await db_validation(None, None, areas_collection, False, True, id)
+    await db_validation(new_data, "chemical", areas_collection)
+    await multiple_db_validation(new_data, "chemicals", chemicals_collection)
+    new_data = set_update_info(new_data, active_user)
+    updated_area = await update_document(id, areas_collection, new_data)    
+    updated_area = await populate(updated_area, "chemicals", chemicals_collection, "chemical")
+    return updated_area
+

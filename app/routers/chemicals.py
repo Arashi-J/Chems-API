@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query, Depends, Body, Path
 
 from app.core.auth import get_current_user, validate_role
-from app.crud.crud import create_documents, get_document_by_id, get_documents, update_document
+from app.crud.crud import create_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
-from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_approval_info, set_update_info
+from app.helpers.helpers import approval_validator, db_validation, multiple_db_validation, multiple_populate, populate, get_approval_info, set_update_info
 from app.models.chemical import ChemicalCreate, ChemicalRead, ChemicalUpdate
 from app.models.hazard import Hazard
 from app.models.ppe import Ppe
@@ -23,7 +23,7 @@ async def get_chemicals(
     status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los químicos activos, inactivos o todos"),
     )->list:
     """
-    Obtiene todos las áreas en la base de datos.
+    Obtiene todas las sustancias químicas en la base de datos.
     """
     chemicals = await get_documents(chemicals_collection, skip, limit, status)
     chemicals = await multiple_populate(chemicals, "hazards", hazards_collection)
@@ -55,8 +55,8 @@ async def create_chemical(
     await multiple_db_validation(chemical, "hazards", hazards_collection)
     await multiple_db_validation(chemical, "ppes", ppes_collection)
     chemical = set_update_info(chemical, active_user)
-    chemical.update(await set_approval_info())
-    new_chemical = await create_documents(chemical, chemicals_collection)
+    chemical.update(await get_approval_info())
+    new_chemical = await create_document(chemical, chemicals_collection)
     new_chemical = await populate(new_chemical, "hazards", hazards_collection)
     new_chemical = await populate(new_chemical, "ppes", ppes_collection)
     return new_chemical
@@ -88,9 +88,8 @@ async def chemical_approval(
     )->dict:
     await validate_role(active_user, ["ems_approver", "fsms_approver", "ohsms_approver"])
     await db_validation(None, None, chemicals_collection, False, True, id)
-
-    approval_data = await set_approval_info(active_user, approval_type)
-    approved_chemical = await update_document(id, chemicals_collection, approval_data)    
+    await approval_validator(id, approval_type)
+    approved_chemical = await update_document(id, chemicals_collection, await get_approval_info(active_user, approval_type))    
     approved_chemical = await populate(approved_chemical, "hazards", hazards_collection)
     approved_chemical = await populate(approved_chemical, "ppes", ppes_collection)
     return approved_chemical

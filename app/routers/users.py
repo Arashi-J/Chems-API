@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Query, Path, Depends
 
 from app.core.auth import get_current_user, login_for_access_token, validate_role
-from app.crud.crud import get_document_by_id, get_documents, create_documents, update_document
+from app.crud.crud import get_document_by_id, get_documents, create_document, update_document
 from app.db.database import db
 from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_update_info
 from app.models.py_object_id import PyObjectId
@@ -30,6 +30,7 @@ async def get_users(
     users = await get_documents(users_collection, skip, limit, status)
     users = await multiple_populate(users, "areas", areas_collection, "area")
     users = await multiple_populate(users, "role", roles_collection)
+    users = await multiple_populate(users, "last_update_by", users_collection, "username")
     return users
 
 @users.get('/{id}',name="Obtener usuario", response_model=UserRead, status_code=200)
@@ -45,6 +46,7 @@ async def get_user(
     user = await get_document_by_id(id, users_collection)
     user = await populate(user, "areas", areas_collection, "area")
     user = await populate(user, "role", roles_collection)
+    user = await populate(user, "last_update_by", users_collection, "username")
     return user
 
 @users.post('/',name="Crear usuario", response_model=UserRead, status_code=201)
@@ -61,9 +63,10 @@ async def create_user(
     await db_validation(user, "role", roles_collection, False, True)
     await multiple_db_validation(user, "areas", areas_collection)
     user = set_update_info(user, active_user)
-    new_user = await create_documents(user, users_collection)
+    new_user = await create_document(user, users_collection)
     new_user = await populate(new_user, "areas", areas_collection, "area")
     new_user = await populate(new_user, "role", roles_collection)
+    new_user = await populate(new_user, "last_update_by", users_collection, "username")
     return new_user
 
 @users.put('/{id}',name="Actualizar usuario", response_model=UserRead, status_code=202)
@@ -84,6 +87,7 @@ async def update_user(
     updated_user = await update_document(id, users_collection, new_data)    
     updated_user = await populate(updated_user, "areas", areas_collection, "area")
     updated_user = await populate(updated_user, "role", roles_collection)
+    updated_user = await populate(updated_user, "last_update_by", users_collection, "username")
     return updated_user
 
 

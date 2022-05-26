@@ -98,12 +98,14 @@ async def multiple_db_validation(
     """
     Verifica en un iterable que los con Mongo IDs en el campo iterable tengan un valor que exista en la base de datos.
     """
+    list_to_populate = data_in.dict()[field_to_validate]
 
-    try:
-        for nested_id in data_in.dict()[field_to_validate]:
-            await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
-    except:
-        raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
+    if type(list_to_populate) is list and len(list_to_populate) > 0:
+        try:
+            for nested_id in list_to_populate:
+                await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
+        except:
+            raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
 
 
 def text_normalizer_title(text:str)->str:
@@ -154,7 +156,7 @@ def set_update_info(item: dict | BaseModel, user: dict)->dict:
     return item
 
 
-async def set_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
+async def get_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
     approval_info = {}
     
     if not approver:
@@ -184,4 +186,12 @@ async def set_approval_info(approver: dict | None = None, approval_type: Approva
     
     return approval_info
 
-#TODO approval validation before
+
+async def approval_validator(id: PyObjectId, approval_type: ApprovalType)->None:
+    approval = dict(await db.chemicals.find_one({"_id": id}))[approval_type]["approval"]
+    
+    
+    if approval:
+        raise HTTPException(status_code=400, detail="La sustancia ya tiene aprobación por parte de este sistema de gestión")
+
+#TODO: Validate that user has acess to that area
