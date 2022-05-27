@@ -20,7 +20,7 @@ users_collection = db.users
 @chemicals.get('/', name="Obtener sustancias químicas", response_model=list[ChemicalRead], status_code=200, dependencies=[Depends(get_current_user)])
 async def get_chemicals(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
-    limit: int = Query(10, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
+    limit: int | None = Query(None, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
     status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los químicos activos, inactivos o todos"),
     )->list:
     """

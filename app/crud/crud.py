@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.models.py_object_id import PyObjectId
 from app.models.enums import QueryStatus
 
-async def get_documents(collection, skip: int = 0, limit: int = 20, status = QueryStatus.all)->list:   
+async def get_documents(collection, skip: int = 0, limit: int | None = None, status = QueryStatus.all)->list:   
     query = {"status": True} if status == QueryStatus.active else {"status": False} if status == QueryStatus.inactive else {}
     documents = await collection.find(query).skip(skip).to_list(limit)
     return documents
@@ -35,9 +35,15 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict
     return updated_document
 
 
-async def delete_document(id: PyObjectId, collection):
+async def delete_document(id: PyObjectId, collection, field_to_update = None, collection_to_update = None):
     await collection.update_one({"_id": id}, {"$set": {"status": False}})
     deleted_document = await get_document_by_id(id, collection)
+    
+    if field_to_update and collection_to_update:
+        documents_to_update = await collection_to_update.find({field_to_update: id}).to_list(None)
+        print(documents_to_update)
+
+    
     return deleted_document
 
 #TODO: Clean nested deleted documents ID
