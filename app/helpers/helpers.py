@@ -66,9 +66,9 @@ async def multiple_populate(
     except:
         return documents
 
-async def db_validation(
-    data_in: BaseModel | None,
-    field_to_validate: str | None,
+async def db_validation(*,
+    data_in: BaseModel | None = None,
+    field_to_validate: str | None = None,
     collection,
     check_duplicate: bool = True,
     search_id: bool = False,
@@ -103,7 +103,10 @@ async def multiple_db_validation(
     if type(list_to_populate) is list and len(list_to_populate) > 0:
         try:
             for nested_id in list_to_populate:
-                await db_validation(data_in, field_to_validate, collection, False, True, nested_id)
+                await db_validation(
+                    data_in=data_in, field_to_validate=field_to_validate,
+                    collection=collection, check_duplicate=False,
+                    search_id=True, query_value=nested_id)
         except:
             raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
 

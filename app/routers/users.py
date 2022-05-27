@@ -42,7 +42,7 @@ async def get_user(
     Obtiene el usuario correspondiente al ID ingresado.
     """
     await validate_role(active_user)
-    await db_validation(None, None, users_collection, False, True, id)
+    await db_validation(collection=users_collection, check_duplicate=False, search_id=True, query_value=id)
     user = await get_document_by_id(id, users_collection)
     user = await populate(user, "areas", areas_collection, "area")
     user = await populate(user, "role", roles_collection)
@@ -58,10 +58,10 @@ async def create_user(
     Crea un usuario. Retorna el usuario Creado.
     """
     await validate_role(active_user)
-    await db_validation(user, "username", users_collection)
-    await db_validation(user, "email", users_collection)
-    await db_validation(user, "role", roles_collection, False, True)
-    await multiple_db_validation(user, "areas", areas_collection)
+    await db_validation(data_in=user, field_to_validate="username", collection=users_collection)
+    await db_validation(data_in=user, field_to_validate="email", collection=users_collection)
+    await db_validation(data_in=user, field_to_validate="role", collection=roles_collection, check_duplicate=False, search_id=True)
+    await multiple_db_validation(data_in=user, field_to_validate="areas", collection=areas_collection)
     user = set_status(user)
     user = set_update_info(user, active_user)
     new_user = await create_document(user, users_collection)
@@ -80,11 +80,11 @@ async def update_user(
     Actualiza los datos del Usuario con el ID ingresado. Retorna el usuario actualizado.
     """
     await validate_role(active_user)
-    await db_validation(None, None, users_collection, False, True, id)
-    await db_validation(new_data, "username", users_collection)
-    await db_validation(new_data, "email", users_collection)
-    await db_validation(new_data, "role", roles_collection, False, True)
-    await multiple_db_validation(new_data, "areas", areas_collection)
+    await db_validation(collection=users_collection, check_duplicate=False, search_id=True, query_value=id)
+    await db_validation(data_in=new_data, field_to_validate="username", collection=users_collection)
+    await db_validation(data_in=new_data, field_to_validate="email", collection=users_collection)
+    await db_validation(data_in=new_data, field_to_validate="role", collection=roles_collection, check_duplicate=False, search_id=True)
+    await multiple_db_validation(data_in=new_data, field_to_validate="areas", collection=areas_collection)
     updated_user = await update_document(id, users_collection, new_data)    
     updated_user = await populate(updated_user, "areas", areas_collection, "area")
     updated_user = await populate(updated_user, "role", roles_collection)
@@ -98,7 +98,7 @@ async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->
     Cambia el usuario correspondiente al ID ingresado a inactivo (False).
     """
     await validate_role(active_user)
-    await db_validation(None, None, users_collection, False, True, id)
+    await db_validation(collection=users_collection, check_duplicate=False , search_id=True, query_value=id)
     deleted_user = await delete_document(id, users_collection)
     deleted_user = await populate(deleted_user, "areas", areas_collection, "area")
     deleted_user = await populate(deleted_user, "role", roles_collection)
@@ -109,7 +109,6 @@ async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->
 async def login(token: Token = Depends(login_for_access_token)):
     return token
     
-
 @users.get('/roles/', name="Obtener Roles", response_model=list[Role], status_code=200)
 async def get_roles(active_user = Depends(get_current_user))->list:
     """
@@ -128,7 +127,7 @@ async def get_user(
     Obtiene el usuario correspondiente al ID ingresado.
     """
     await validate_role(active_user)
-    await db_validation(None, None, roles_collection, False, True, id)
+    await db_validation(collection=roles_collection, check_duplicate=False, search_id=True, query_value=id)
     role = await get_document_by_id(id, roles_collection)
     return role
 

@@ -36,7 +36,7 @@ async def get_chemical(
     """
     Obtiene área correspondiente al ID ingresado.
     """
-    await db_validation(None, None, areas_collection, False, True, id)
+    await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
     area = await get_document_by_id(id, areas_collection)
     area = await populate(area, "chemicals", chemicals_collection, "chemical")
     area = await populate(area, "last_update_by", users_collection, "username")
@@ -52,8 +52,8 @@ async def create_chemical(
     Crea una área. Retorna el área creada.
     """
     await validate_role(active_user)
-    await db_validation(area, "area", areas_collection)
-    await multiple_db_validation(area, "chemicals", chemicals_collection)
+    await db_validation(data_in= area, field_to_validate="area", collection=areas_collection)
+    await multiple_db_validation(data_in= area, field_to_validate="chemicals", collection=chemicals_collection)
     area = set_status(area)
     area = set_update_info(area, active_user)
     new_area = await create_document(area, areas_collection)
@@ -71,9 +71,9 @@ async def update_chemical(
     Actualiza los datos del área del ID ingresado. Retorna el área actualizada.
     """
     await validate_area_auth(active_user, id)
-    await db_validation(None, None, areas_collection, False, True, id)
-    await db_validation(new_data, "area", areas_collection)
-    await multiple_db_validation(new_data, "chemicals", chemicals_collection)
+    await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
+    await db_validation(data_in=new_data, field_to_validate= "area", collection= areas_collection)
+    await multiple_db_validation(data_in=new_data, field_to_validate= "chemicals", collection= chemicals_collection)
     new_data = set_update_info(new_data, active_user)
     updated_area = await update_document(id, areas_collection, new_data)    
     updated_area = await populate(updated_area, "chemicals", chemicals_collection, "chemical")
@@ -86,7 +86,7 @@ async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->
     Cambia el área correspondiente al ID ingresado a inactivo (False).
     """
     await validate_role(active_user)
-    await db_validation(None, None, areas_collection, False, True, id)
+    await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
     deleted_area = await delete_document(id, areas_collection)
     deleted_area = await populate(deleted_area, "chemicals", chemicals_collection, "chemical")
     deleted_area = await populate(deleted_area, "last_update_by", users_collection, "username")

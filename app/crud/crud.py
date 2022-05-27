@@ -34,8 +34,12 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict
     updated_document = await get_document_by_id(id, collection)
     return updated_document
 
-#TODO: Delete document
+
 async def delete_document(id: PyObjectId, collection):
     await collection.update_one({"_id": id}, {"$set": {"status": False}})
     deleted_document = await get_document_by_id(id, collection)
     return deleted_document
+
+#TODO: Clean nested deleted documents ID
+
+#TODO: accept update if not change to index value

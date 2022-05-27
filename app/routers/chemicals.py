@@ -39,7 +39,7 @@ async def get_chemical(
     """
     Obtiene la sustancia química correspondiente al ID ingresado.
     """
-    await db_validation(None, None, chemicals_collection, False, True, id)
+    await db_validation(collection= chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
     chemical = await get_document_by_id(id, chemicals_collection)
     chemical = await populate(chemical, "hazards", hazards_collection)
     chemical = await populate(chemical, "ppes", ppes_collection)
@@ -54,9 +54,9 @@ async def create_chemical(
     """
     Crea una sustancia química. Retorna la sustancia química creada.
     """
-    await db_validation(chemical, "chemical", chemicals_collection)
-    await multiple_db_validation(chemical, "hazards", hazards_collection)
-    await multiple_db_validation(chemical, "ppes", ppes_collection)
+    await db_validation(data_in=chemical, field_to_validate="chemical", collection= chemicals_collection)
+    await multiple_db_validation(data_in=chemical, field_to_validate="hazards", collection= hazards_collection)
+    await multiple_db_validation(data_in=chemical, field_to_validate="ppes", collection= ppes_collection)
     chemical = set_status(chemical)
     chemical = set_update_info(chemical, active_user)
     chemical.update(await get_approval_info())
@@ -75,10 +75,10 @@ async def update_chemical(
     """
     Actualiza los datos de la sustancia química del ID ingresado. Retorna la sustancia química actualizada.
     """
-    await db_validation(None, None, chemicals_collection, False, True, id)
-    await db_validation(new_data, "chemical", chemicals_collection)
-    await multiple_db_validation(new_data, "hazards", hazards_collection)
-    await multiple_db_validation(new_data, "ppes", ppes_collection)
+    await db_validation(collection= chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
+    await db_validation(data_in=new_data, field_to_validate="chemical", collection=chemicals_collection)
+    await multiple_db_validation(data_in=new_data, field_to_validate="hazards", collection=hazards_collection)
+    await multiple_db_validation(data_in=new_data, field_to_validate="ppes", collection=ppes_collection)
     new_data = set_update_info(new_data, active_user)
     updated_chemical = await update_document(id, chemicals_collection, new_data)    
     updated_chemical = await populate(updated_chemical, "hazards", hazards_collection)
@@ -92,7 +92,7 @@ async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->
     Cambia el estado de la sustancia química correspondiente al ID ingresado a inactivo (False).
     """
     await validate_role(active_user)
-    await db_validation(None, None, chemicals_collection, False, True, id)
+    await db_validation(collection= chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
     deleted_chemical = await delete_document(id, chemicals_collection)
     updated_chemical = await populate(updated_chemical, "hazards", hazards_collection)
     updated_chemical = await populate(updated_chemical, "ppes", ppes_collection)
@@ -106,7 +106,7 @@ async def chemical_approval(
     active_user = Depends(get_current_user)    
     )->dict:
     await validate_role(active_user, ["ems_approver", "fsms_approver", "ohsms_approver"])
-    await db_validation(None, None, chemicals_collection, False, True, id)
+    await db_validation(collection= chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
     await approval_validator(id, approval_type)
     approved_chemical = await update_document(id, chemicals_collection, await get_approval_info(active_user, approval_type))    
     approved_chemical = await populate(approved_chemical, "hazards", hazards_collection)
@@ -130,7 +130,7 @@ async def get_chemical(
     """
     Obtiene el peligro correspondiente al ID ingresado.
     """
-    await db_validation(None, None, hazards_collection, False, True, id)
+    await db_validation(collection=hazards_collection, check_duplicate=False, search_id=True, query_value=id)
     hazard = await get_document_by_id(id, hazards_collection)
     return hazard
 
@@ -150,6 +150,6 @@ async def get_chemical(
     """
     Obtiene el peligro correspondiente al ID ingresado.
     """
-    await db_validation(None, None, ppes_collection, False, True, id)
+    await db_validation(collection=ppes_collection, check_duplicate=False, search_id=True, query_value=id)
     ppe = await get_document_by_id(id, ppes_collection)
     return ppe
