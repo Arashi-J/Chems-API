@@ -111,14 +111,18 @@ async def multiple_db_validation(
             raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
 
 def text_normalizer_title(text:str)->str:
-
+    """
+    Elímina acentos y capitaliza correctamente.
+    """
     text = text.title()
         
     nfkd_form = unicodedata.normalize('NFKD', text)
     return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 def text_normalizer_lower(text:str)->str:
-
+    """
+    Elímina acentos y pone en minúscula todo el texto.
+    """
     text = text.casefold()
         
     nfkd_form = unicodedata.normalize('NFKD', text)
@@ -134,7 +138,9 @@ def drop_duplicates(input: list)->list:
         return input
 
 def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
-    
+    """
+    Ajusta el formato de las frases P.
+    """
     p_phrase = p_phrase.dict()
     phrase_code = p_phrase["code"]
     phrase_code = "P" + re.sub("[^0-9]", "", phrase_code)
@@ -143,7 +149,9 @@ def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
     return p_phrase
 
 def h_phrase_code_normalizer(h_phrase: Phrase)->dict:
-    
+    """
+    Ajusta el formato de las frases H
+    """
     h_phrase = h_phrase.dict()
     phrase_code = h_phrase["code"]
     phrase_code = "H" + re.sub("[^0-9]", "", phrase_code)
@@ -197,4 +205,4 @@ async def approval_validator(id: PyObjectId, approval_type: ApprovalType)->None:
     if approval:
         raise HTTPException(status_code=400, detail="La sustancia ya tiene aprobación por parte de este sistema de gestión")
 
-#TODO: validators should delete items with status false or clean it from create or update data inputs
+#TODO: validators should delete items with status false or clean it from create or update data inputs try in drop duplicates
