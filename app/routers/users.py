@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Query, Path, Depends
 
 from app.core.auth import get_current_user, login_for_access_token, validate_role
-from app.crud.crud import delete_document, get_document_by_id, get_documents, create_document, update_document
+from app.crud.crud import delete_restore_document, get_document_by_id, get_documents, create_document, update_document
 from app.db.database import db
 from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_status, set_update_info
 from app.models.py_object_id import PyObjectId
@@ -92,14 +92,14 @@ async def update_user(
     return updated_user
 
 
-@users.delete("({id}", name="Eliminar usuario", response_model=UserRead, status_code=200)
-async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
+@users.delete("({id}", name="Eliminar o restaurar usuario", response_model=UserRead, status_code=200)
+async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
     """
-    Cambia el usuario correspondiente al ID ingresado a inactivo (False).
+    Cambia el usuario correspondiente al ID ingresado a inactivo (False) o activo (True).
     """
     await validate_role(active_user)
     await db_validation(collection=users_collection, check_duplicate=False , search_id=True, query_value=id)
-    deleted_user = await delete_document(id, users_collection)
+    deleted_user = await delete_restore_document(id, users_collection)
     deleted_user = await populate(deleted_user, "areas", areas_collection, "area")
     deleted_user = await populate(deleted_user, "role", roles_collection)
     deleted_user = await populate(deleted_user, "last_update_by", users_collection, "username")

@@ -196,3 +196,5 @@ async def approval_validator(id: PyObjectId, approval_type: ApprovalType)->None:
     approval = dict(await db.chemicals.find_one({"_id": id}))[approval_type]["approval"]
     if approval:
         raise HTTPException(status_code=400, detail="La sustancia ya tiene aprobación por parte de este sistema de gestión")
+
+#TODO: validators should delete items with status false or clean it from create or update data inputs

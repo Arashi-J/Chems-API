@@ -35,17 +35,22 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict
     return updated_document
 
 
-async def delete_document(id: PyObjectId, collection, field_to_update = None, collection_to_update = None):
-    await collection.update_one({"_id": id}, {"$set": {"status": False}})
+async def delete_restore_document(id: PyObjectId, collection, collection_to_update = None, field_to_update: str | None = None):
+    
+    deleted_document = await get_document_by_id(id, collection)
+    current_status = deleted_document["status"]
+    await collection.update_one({"_id": id}, {"$set": {"status": not current_status}})
     deleted_document = await get_document_by_id(id, collection)
     
-    if field_to_update and collection_to_update:
-        documents_to_update = await collection_to_update.find({field_to_update: id}).to_list(None)
-        print(documents_to_update)
+    if field_to_update and current_status:
+        documents_to_update = await collection_to_update.find({field_to_update: {"$all": [id]}}).to_list(None)
+        for document in documents_to_update:
+            updated_field = document[field_to_update]
+            updated_field.remove(id)
+            await collection_to_update.update_one({"_id": document["_id"]}, {"$set": {field_to_update: updated_field}})
 
-    
     return deleted_document
 
-#TODO: Clean nested deleted documents ID
 
 #TODO: accept update if not change to index value
+#TODO: universal search

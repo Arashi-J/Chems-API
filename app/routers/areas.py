@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Path, Body
 
 from app.core.auth import get_current_user, validate_area_auth, validate_role
-from app.crud.crud import create_document, delete_document, get_document_by_id, get_documents, update_document
+from app.crud.crud import create_document, delete_restore_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
 from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_status, set_update_info
 from app.models.area import AreaCreate, AreaRead, AreaUpdate
@@ -73,21 +73,21 @@ async def update_chemical(
     await validate_area_auth(active_user, id)
     await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
     await db_validation(data_in=new_data, field_to_validate= "area", collection= areas_collection)
-    await multiple_db_validation(data_in=new_data, field_to_validate= "chemicals", collection= chemicals_collection)
+    await multiple_db_validation(data_in=new_data, field_to_validate="chemicals", collection=chemicals_collection)
     new_data = set_update_info(new_data, active_user)
     updated_area = await update_document(id, areas_collection, new_data)    
     updated_area = await populate(updated_area, "chemicals", chemicals_collection, "chemical")
     updated_area = await populate(updated_area, "last_update_by", users_collection, "username")
     return updated_area
 
-@areas.delete("({id}", name="Eliminar área", response_model=AreaRead, status_code=200)
-async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
+@areas.delete("({id}", name="Eliminar o restaurar área", response_model=AreaRead, status_code=200)
+async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
     """
-    Cambia el área correspondiente al ID ingresado a inactivo (False).
+    Cambia el área correspondiente al ID ingresado a inactivo (False) o activo (True).
     """
     await validate_role(active_user)
     await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
-    deleted_area = await delete_document(id, areas_collection)
+    deleted_area = await delete_restore_document(id, areas_collection, users_collection, "areas")
     deleted_area = await populate(deleted_area, "chemicals", chemicals_collection, "chemical")
     deleted_area = await populate(deleted_area, "last_update_by", users_collection, "username")
     return deleted_area
