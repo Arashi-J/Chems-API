@@ -19,13 +19,13 @@ async def get_document_by_query(query: dict, collection)->dict | None:
     except:
         return None
 
-async def create_document(document: BaseModel, collection)->dict:  
+async def create_document(document: BaseModel, collection):  
     document = document.dict() if type(document) is not dict else document
     new_document = await collection.insert_one(document)
     created_document = await get_document_by_id(new_document.inserted_id, collection)
     return created_document
 
-async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict)->dict:
+async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict):
     if type(new_data) is not dict:
         new_data = new_data.dict(exclude_unset = True, exclude_none = True, exclude_defaults=True)
     else: 
@@ -35,7 +35,7 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict
     return updated_document
 
 #TODO: Delete document
-async def delete_document(id: PyObjectId, collection)->dict:
+async def delete_document(id: PyObjectId, collection):
     await collection.update_one({"_id": id}, {"$set": {"status": False}})
     deleted_document = await get_document_by_id(id, collection)
     return deleted_document

@@ -25,7 +25,7 @@ class ChemicalBase(BaseModel):
     h_phrases: list[Phrase] = []
     ppes: list[PyObjectId] = []
     sds: list[AnyUrl] = []
-    status: bool = True
+
 
     _normalize_chemical = validator("chemical", allow_reuse=True)(text_normalizer_title)
     _normalize_arrays = validator("providers", "manufacturers", "sds", allow_reuse=True, each_item=True)(text_normalizer_title)
@@ -42,10 +42,11 @@ class ChemicalUpdate(ChemicalBase):
 
 class ChemicalRead(ChemicalBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
-    last_update_by: dict | None
-    last_update_date: datetime
     fsms: Approval | None = None
     ems: Approval | None = None  
     ohsms: Approval | None = None
     hazards: list[Hazard]
     ppes: list[Ppe]
+    last_update_by: dict
+    last_update_date: datetime
+    status: bool

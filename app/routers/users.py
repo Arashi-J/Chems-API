@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Body, Query, Path, Depends
 
 from app.core.auth import get_current_user, login_for_access_token, validate_role
-from app.crud.crud import get_document_by_id, get_documents, create_document, update_document
+from app.crud.crud import delete_document, get_document_by_id, get_documents, create_document, update_document
 from app.db.database import db
-from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_update_info
+from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_status, set_update_info
 from app.models.py_object_id import PyObjectId
 from app.models.role import Role
 from app.models.token import Token
@@ -62,6 +62,7 @@ async def create_user(
     await db_validation(user, "email", users_collection)
     await db_validation(user, "role", roles_collection, False, True)
     await multiple_db_validation(user, "areas", areas_collection)
+    user = set_status(user)
     user = set_update_info(user, active_user)
     new_user = await create_document(user, users_collection)
     new_user = await populate(new_user, "areas", areas_collection, "area")
@@ -91,6 +92,19 @@ async def update_user(
     return updated_user
 
 
+@users.delete("({id}", name="Eliminar usuario", response_model=UserRead, status_code=200)
+async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
+    """
+    Cambia el usuario correspondiente al ID ingresado a inactivo (False).
+    """
+    await validate_role(active_user)
+    await db_validation(None, None, users_collection, False, True, id)
+    deleted_user = await delete_document(id, users_collection)
+    deleted_user = await populate(deleted_user, "areas", areas_collection, "area")
+    deleted_user = await populate(deleted_user, "role", roles_collection)
+    deleted_user = await populate(deleted_user, "last_update_by", users_collection, "username")
+    return deleted_user
+
 @users.post("/login", response_model=Token)
 async def login(token: Token = Depends(login_for_access_token)):
     return token
@@ -117,3 +131,4 @@ async def get_user(
     await db_validation(None, None, roles_collection, False, True, id)
     role = await get_document_by_id(id, roles_collection)
     return role
+

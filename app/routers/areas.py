@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query, Path, Body
 
 from app.core.auth import get_current_user, validate_area_auth, validate_role
-from app.crud.crud import create_document, get_document_by_id, get_documents, update_document
+from app.crud.crud import create_document, delete_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
-from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_update_info
+from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_status, set_update_info
 from app.models.area import AreaCreate, AreaRead, AreaUpdate
 from app.models.enums import QueryStatus
 from app.models.py_object_id import PyObjectId
@@ -54,6 +54,7 @@ async def create_chemical(
     await validate_role(active_user)
     await db_validation(area, "area", areas_collection)
     await multiple_db_validation(area, "chemicals", chemicals_collection)
+    area = set_status(area)
     area = set_update_info(area, active_user)
     new_area = await create_document(area, areas_collection)
     new_area = await populate(new_area, "chemicals", chemicals_collection, "chemical")
@@ -79,3 +80,14 @@ async def update_chemical(
     updated_area = await populate(updated_area, "last_update_by", users_collection, "username")
     return updated_area
 
+@areas.delete("({id}", name="Eliminar área", response_model=AreaRead, status_code=200)
+async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
+    """
+    Cambia el área correspondiente al ID ingresado a inactivo (False).
+    """
+    await validate_role(active_user)
+    await db_validation(None, None, areas_collection, False, True, id)
+    deleted_area = await delete_document(id, areas_collection)
+    deleted_area = await populate(deleted_area, "chemicals", chemicals_collection, "chemical")
+    deleted_area = await populate(deleted_area, "last_update_by", users_collection, "username")
+    return deleted_area

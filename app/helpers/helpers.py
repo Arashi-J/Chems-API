@@ -107,7 +107,6 @@ async def multiple_db_validation(
         except:
             raise HTTPException(status_code=400, detail=f"La información ingresada en el campo {field_to_validate} no es válida. {nested_id} no se encuentra en la base de datos.")
 
-
 def text_normalizer_title(text:str)->str:
 
     text = text.title()
@@ -155,6 +154,10 @@ def set_update_info(item: dict | BaseModel, user: dict)->dict:
     item["last_update_by"] = user["_id"]
     return item
 
+def set_status(item: dict | BaseModel):
+    item = item.dict() if type(item) is not dict else item
+    item["status"] = True
+    return item
 
 async def get_approval_info(approver: dict | None = None, approval_type: ApprovalType | None = None)->dict:
     approval_info = {}
@@ -186,10 +189,7 @@ async def get_approval_info(approver: dict | None = None, approval_type: Approva
     
     return approval_info
 
-
 async def approval_validator(id: PyObjectId, approval_type: ApprovalType)->None:
     approval = dict(await db.chemicals.find_one({"_id": id}))[approval_type]["approval"]
-    
-    
     if approval:
         raise HTTPException(status_code=400, detail="La sustancia ya tiene aprobación por parte de este sistema de gestión")

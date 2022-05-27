@@ -9,7 +9,6 @@ from app.models.py_object_id import PyObjectId
 
 class AreaBase(BaseModel):
     area: str
-    status: bool = True
     chemicals: list[PyObjectId] = []
     class Config:
         allow_population_by_field_name = True
@@ -24,11 +23,12 @@ class AreaCreate(AreaBase):
 
 class AreaUpdate(AreaBase):
     area: str | None = None
-    status: bool | None = None
+
 
 class AreaRead(AreaBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
-    last_update_by: dict | None
-    last_update_date: datetime
     chemicals: list[dict]
+    last_update_by: dict
+    last_update_date: datetime
+    status: bool
 

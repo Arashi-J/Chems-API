@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query, Depends, Body, Path
 
 from app.core.auth import get_current_user, validate_role
-from app.crud.crud import create_document, get_document_by_id, get_documents, update_document
+from app.crud.crud import create_document, delete_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
-from app.helpers.helpers import approval_validator, db_validation, multiple_db_validation, multiple_populate, populate, get_approval_info, set_update_info
+from app.helpers.helpers import approval_validator, db_validation, multiple_db_validation, multiple_populate, populate, get_approval_info, set_status, set_update_info
 from app.models.chemical import ChemicalCreate, ChemicalRead, ChemicalUpdate
 from app.models.hazard import Hazard
 from app.models.ppe import Ppe
@@ -57,6 +57,7 @@ async def create_chemical(
     await db_validation(chemical, "chemical", chemicals_collection)
     await multiple_db_validation(chemical, "hazards", hazards_collection)
     await multiple_db_validation(chemical, "ppes", ppes_collection)
+    chemical = set_status(chemical)
     chemical = set_update_info(chemical, active_user)
     chemical.update(await get_approval_info())
     new_chemical = await create_document(chemical, chemicals_collection)
@@ -84,6 +85,19 @@ async def update_chemical(
     updated_chemical = await populate(updated_chemical, "ppes", ppes_collection)
     updated_chemical = await populate(updated_chemical, "last_update_by", users_collection, "username")
     return updated_chemical
+
+@chemicals.delete("({id}", name="Eliminar sustancia química", response_model=ChemicalRead, status_code=200)
+async def delete_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
+    """
+    Cambia el estado de la sustancia química correspondiente al ID ingresado a inactivo (False).
+    """
+    await validate_role(active_user)
+    await db_validation(None, None, chemicals_collection, False, True, id)
+    deleted_chemical = await delete_document(id, chemicals_collection)
+    updated_chemical = await populate(updated_chemical, "hazards", hazards_collection)
+    updated_chemical = await populate(updated_chemical, "ppes", ppes_collection)
+    updated_chemical = await populate(updated_chemical, "last_update_by", users_collection, "username")
+    return deleted_chemical
 
 @chemicals.patch('/approval/{id}', name="Aprobar sustancia química", response_model=ChemicalRead, status_code=202)
 async def chemical_approval(
