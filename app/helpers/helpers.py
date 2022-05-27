@@ -193,5 +193,3 @@ async def approval_validator(id: PyObjectId, approval_type: ApprovalType)->None:
     
     if approval:
         raise HTTPException(status_code=400, detail="La sustancia ya tiene aprobación por parte de este sistema de gestión")
-
-#TODO: Validate that user has acess to that area

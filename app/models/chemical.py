@@ -42,7 +42,7 @@ class ChemicalUpdate(ChemicalBase):
 
 class ChemicalRead(ChemicalBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
-    last_update_by: PyObjectId | None
+    last_update_by: dict | None
     last_update_date: datetime
     fsms: Approval | None = None
     ems: Approval | None = None  

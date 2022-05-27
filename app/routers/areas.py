@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Path, Body
 
-from app.core.auth import get_current_user, validate_role
+from app.core.auth import get_current_user, validate_area_auth, validate_role
 from app.crud.crud import create_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
 from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_update_info
@@ -12,6 +12,7 @@ areas = APIRouter(prefix="/areas", tags=["Áreas"])
 
 areas_collection = db.areas
 chemicals_collection = db.chemicals
+users_collection = db.users
 
 @areas.get('/', name="Obtener áreas", response_model=list[AreaRead], status_code=200, dependencies=[Depends(get_current_user)])
 async def get_areas(
@@ -24,6 +25,7 @@ async def get_areas(
     """
     areas = await get_documents(areas_collection, skip, limit, status)
     areas = await multiple_populate(areas, "chemicals", chemicals_collection, "chemical")
+    areas = await multiple_populate(areas, "last_update_by", users_collection, "username")
 
     return areas
 
@@ -37,6 +39,7 @@ async def get_chemical(
     await db_validation(None, None, areas_collection, False, True, id)
     area = await get_document_by_id(id, areas_collection)
     area = await populate(area, "chemicals", chemicals_collection, "chemical")
+    area = await populate(area, "last_update_by", users_collection, "username")
 
     return area
 
@@ -54,6 +57,7 @@ async def create_chemical(
     area = set_update_info(area, active_user)
     new_area = await create_document(area, areas_collection)
     new_area = await populate(new_area, "chemicals", chemicals_collection, "chemical")
+    new_area = await populate(new_area, "last_update_by", users_collection, "username")
     return new_area
 
 @areas.put('/{id}',name="Actualizar área", response_model=AreaRead, status_code=202)
@@ -65,11 +69,13 @@ async def update_chemical(
     """
     Actualiza los datos del área del ID ingresado. Retorna el área actualizada.
     """
+    await validate_area_auth(active_user, id)
     await db_validation(None, None, areas_collection, False, True, id)
-    await db_validation(new_data, "chemical", areas_collection)
+    await db_validation(new_data, "area", areas_collection)
     await multiple_db_validation(new_data, "chemicals", chemicals_collection)
     new_data = set_update_info(new_data, active_user)
     updated_area = await update_document(id, areas_collection, new_data)    
     updated_area = await populate(updated_area, "chemicals", chemicals_collection, "chemical")
+    updated_area = await populate(updated_area, "last_update_by", users_collection, "username")
     return updated_area
 

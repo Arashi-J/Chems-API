@@ -14,7 +14,8 @@ chemicals = APIRouter(prefix="/chemicals", tags=["Sustancias Químicas"])
 
 chemicals_collection = db.chemicals
 hazards_collection = db.hazards
-ppes_collection = db.ppes   
+ppes_collection = db.ppes
+users_collection = db.users
 
 @chemicals.get('/', name="Obtener sustancias químicas", response_model=list[ChemicalRead], status_code=200, dependencies=[Depends(get_current_user)])
 async def get_chemicals(
@@ -28,6 +29,7 @@ async def get_chemicals(
     chemicals = await get_documents(chemicals_collection, skip, limit, status)
     chemicals = await multiple_populate(chemicals, "hazards", hazards_collection)
     chemicals = await multiple_populate(chemicals, "ppes", ppes_collection)
+    chemicals = await multiple_populate(chemicals, "last_update_by", users_collection, "username")
     return chemicals
 
 @chemicals.get('/{id}',name="Obtener sustancia química", response_model=ChemicalRead, status_code=200, dependencies=[Depends(get_current_user)])
@@ -41,6 +43,7 @@ async def get_chemical(
     chemical = await get_document_by_id(id, chemicals_collection)
     chemical = await populate(chemical, "hazards", hazards_collection)
     chemical = await populate(chemical, "ppes", ppes_collection)
+    chemical = await populate(chemical, "last_update_by", users_collection, "username")
     return chemical
 
 @chemicals.post('/',name="Crear sustancia química", response_model=ChemicalRead, status_code=201)
@@ -59,6 +62,7 @@ async def create_chemical(
     new_chemical = await create_document(chemical, chemicals_collection)
     new_chemical = await populate(new_chemical, "hazards", hazards_collection)
     new_chemical = await populate(new_chemical, "ppes", ppes_collection)
+    new_chemical = await populate(new_chemical, "last_update_by", users_collection, "username")
     return new_chemical
 
 @chemicals.put('/{id}',name="Actualizar sustancia química", response_model=ChemicalRead, status_code=202)
@@ -78,6 +82,7 @@ async def update_chemical(
     updated_chemical = await update_document(id, chemicals_collection, new_data)    
     updated_chemical = await populate(updated_chemical, "hazards", hazards_collection)
     updated_chemical = await populate(updated_chemical, "ppes", ppes_collection)
+    updated_chemical = await populate(updated_chemical, "last_update_by", users_collection, "username")
     return updated_chemical
 
 @chemicals.patch('/approval/{id}', name="Aprobar sustancia química", response_model=ChemicalRead, status_code=202)
@@ -92,6 +97,7 @@ async def chemical_approval(
     approved_chemical = await update_document(id, chemicals_collection, await get_approval_info(active_user, approval_type))    
     approved_chemical = await populate(approved_chemical, "hazards", hazards_collection)
     approved_chemical = await populate(approved_chemical, "ppes", ppes_collection)
+    approved_chemical = await populate(approved_chemical, "last_update_by", users_collection, "username")
     return approved_chemical
 
 @chemicals.get('/hazards/', name="Obtener peligros", response_model=list[Hazard], status_code=200, dependencies=[Depends(get_current_user)])

@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.security import verify_password
 from app.db.database import db
 from app.crud.crud import get_document_by_id, get_document_by_query
+from app.models.py_object_id import PyObjectId
 from app.models.token import TokenData
 from app.models.user import UserRead
 
@@ -76,3 +77,8 @@ async def validate_role(user: dict, allowd_roles: list[str] = []):
     user_role = dict(await get_document_by_id(user["role"], roles_collection))["role"]
     if not user_role == "admin" and user_role not in allowd_roles:
         raise HTTPException(status_code=403, detail="El usuario no tiene los permisos suficientes para realizar la operación")
+
+async def validate_area_auth(user: dict, area_id: PyObjectId):
+    user_role = dict(await get_document_by_id(user["role"], roles_collection))["role"]
+    if area_id not in user["areas"] and not user_role == "admin":
+        raise HTTPException(status_code=403, detail="El usuario no tiene el permiso requerido para ejecutar esta acción")
