@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 from app.models.py_object_id import PyObjectId
@@ -35,11 +36,15 @@ async def update_document(id: PyObjectId, collection, new_data: BaseModel | dict
     return updated_document
 
 
-async def delete_restore_document(id: PyObjectId, collection, collection_to_update = None, field_to_update: str | None = None):
+async def delete_restore_document(id: PyObjectId, collection, user: dict, collection_to_update = None, field_to_update: str | None = None,):
     
     deleted_document = await get_document_by_id(id, collection)
     current_status = deleted_document["status"]
-    await collection.update_one({"_id": id}, {"$set": {"status": not current_status}})
+    await collection.update_one({"_id": id}, {"$set": {
+        "status": not current_status,
+        "last_update_by": user["_id"],
+        "last_update_date": datetime.utcnow()
+        }})
     deleted_document = await get_document_by_id(id, collection)
     
     if field_to_update and current_status:
@@ -52,5 +57,5 @@ async def delete_restore_document(id: PyObjectId, collection, collection_to_upda
     return deleted_document
 
 
-#TODO: accept update if not change to index value
 #TODO: universal search
+#TODO: accept update if not change to index value

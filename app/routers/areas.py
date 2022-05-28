@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query, Path, Body
 from app.core.auth import get_current_user, validate_area_auth, validate_role
 from app.crud.crud import create_document, delete_restore_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
-from app.helpers.helpers import db_validation, multiple_db_validation, multiple_populate, populate, set_status, set_update_info
+from app.helpers.helpers import db_validation, drop_inactive_nested_ids, multiple_db_validation, multiple_populate, populate, set_status, set_update_info
 from app.models.area import AreaCreate, AreaRead, AreaUpdate
 from app.models.enums import QueryStatus
 from app.models.py_object_id import PyObjectId
@@ -56,6 +56,7 @@ async def create_chemical(
     await multiple_db_validation(data_in= area, field_to_validate="chemicals", collection=chemicals_collection)
     area = set_status(area)
     area = set_update_info(area, active_user)
+    area = await drop_inactive_nested_ids(area, "chemicals", chemicals_collection)
     new_area = await create_document(area, areas_collection)
     new_area = await populate(new_area, "chemicals", chemicals_collection, "chemical")
     new_area = await populate(new_area, "last_update_by", users_collection, "username")
@@ -75,6 +76,7 @@ async def update_chemical(
     await db_validation(data_in=new_data, field_to_validate= "area", collection= areas_collection)
     await multiple_db_validation(data_in=new_data, field_to_validate="chemicals", collection=chemicals_collection)
     new_data = set_update_info(new_data, active_user)
+    new_data = await drop_inactive_nested_ids(new_data, "chemicals", chemicals_collection)
     updated_area = await update_document(id, areas_collection, new_data)    
     updated_area = await populate(updated_area, "chemicals", chemicals_collection, "chemical")
     updated_area = await populate(updated_area, "last_update_by", users_collection, "username")
@@ -87,7 +89,7 @@ async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_
     """
     await validate_role(active_user)
     await db_validation(collection=areas_collection, check_duplicate=False, search_id=True, query_value=id)
-    deleted_area = await delete_restore_document(id, areas_collection, users_collection, "areas")
+    deleted_area = await delete_restore_document(id, areas_collection, active_user, users_collection, "areas")
     deleted_area = await populate(deleted_area, "chemicals", chemicals_collection, "chemical")
     deleted_area = await populate(deleted_area, "last_update_by", users_collection, "username")
     return deleted_area

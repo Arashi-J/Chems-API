@@ -94,7 +94,7 @@ async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_
     """
     await validate_role(active_user)
     await db_validation(collection= chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
-    deleted_chemical = await delete_restore_document(id, chemicals_collection, areas_collection, "chemicals")
+    deleted_chemical = await delete_restore_document(id, chemicals_collection, active_user,  areas_collection, "chemicals")
     deleted_chemical = await populate(deleted_chemical, "hazards", hazards_collection)
     deleted_chemical = await populate(deleted_chemical, "ppes", ppes_collection)
     deleted_chemical = await populate(deleted_chemical, "last_update_by", users_collection, "username")

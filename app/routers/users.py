@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, Query, Path, Depends
 from app.core.auth import get_current_user, login_for_access_token, validate_role
 from app.crud.crud import delete_restore_document, get_document_by_id, get_documents, create_document, update_document
 from app.db.database import db
-from app.helpers.helpers import populate, multiple_populate, db_validation, multiple_db_validation, set_status, set_update_info
+from app.helpers.helpers import drop_inactive_nested_ids, populate, multiple_populate, db_validation, multiple_db_validation, set_status, set_update_info
 from app.models.py_object_id import PyObjectId
 from app.models.role import Role
 from app.models.token import Token
@@ -64,6 +64,7 @@ async def create_user(
     await multiple_db_validation(data_in=user, field_to_validate="areas", collection=areas_collection)
     user = set_status(user)
     user = set_update_info(user, active_user)
+    user = await drop_inactive_nested_ids(user, "areas", areas_collection)
     new_user = await create_document(user, users_collection)
     new_user = await populate(new_user, "areas", areas_collection, "area")
     new_user = await populate(new_user, "role", roles_collection)
@@ -85,6 +86,8 @@ async def update_user(
     await db_validation(data_in=new_data, field_to_validate="email", collection=users_collection)
     await db_validation(data_in=new_data, field_to_validate="role", collection=roles_collection, check_duplicate=False, search_id=True)
     await multiple_db_validation(data_in=new_data, field_to_validate="areas", collection=areas_collection)
+    new_data = set_update_info(new_data, active_user)
+    new_data = await drop_inactive_nested_ids(new_data, "areas", areas_collection)
     updated_user = await update_document(id, users_collection, new_data)    
     updated_user = await populate(updated_user, "areas", areas_collection, "area")
     updated_user = await populate(updated_user, "role", roles_collection)
@@ -99,7 +102,7 @@ async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_
     """
     await validate_role(active_user)
     await db_validation(collection=users_collection, check_duplicate=False , search_id=True, query_value=id)
-    deleted_user = await delete_restore_document(id, users_collection)
+    deleted_user = await delete_restore_document(id, users_collection, active_user)
     deleted_user = await populate(deleted_user, "areas", areas_collection, "area")
     deleted_user = await populate(deleted_user, "role", roles_collection)
     deleted_user = await populate(deleted_user, "last_update_by", users_collection, "username")

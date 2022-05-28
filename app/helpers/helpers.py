@@ -137,6 +137,8 @@ def drop_duplicates(input: list)->list:
     finally :
         return input
 
+
+
 def p_phrase_code_normalizer(p_phrase: Phrase)->dict:
     """
     Ajusta el formato de las frases P.
@@ -164,6 +166,17 @@ def set_update_info(item: dict | BaseModel, user: dict)->dict:
     item["last_update_date"] = datetime.utcnow()
     item["last_update_by"] = user["_id"]
     return item
+
+async def drop_inactive_nested_ids(item: dict | BaseModel,field_to_process , collection)->list:
+    """
+    Elimina los MongoID inactivos
+    """
+    item = item.dict() if type(item) is not dict else item
+    field_list = item[field_to_process]
+    field_list = [id for id in field_list if (await collection.find_one({"_id": id}))["status"]]
+    item[field_to_process] = field_list
+    return item
+
 
 def set_status(item: dict | BaseModel):
     item = item.dict() if type(item) is not dict else item
