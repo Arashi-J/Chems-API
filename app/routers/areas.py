@@ -18,7 +18,7 @@ users_collection = db.users
 async def get_areas(
     skip: int = Query(0, title="Salto de página", description="Índica desde el cual número de documento inicia la consulta a la base de datos"),
     limit: int | None = Query(None, title="Límite", description="Índica la cantidad máxima que obtendrá la consulta a la Base de Datos"),
-    status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga los químicos activos, inactivos o todos"),
+    status: QueryStatus = Query(QueryStatus.all, title="Estado", description="Determina si se requiere que la consulta obtenga las áreas activas, inactivas o todas"),
     )->list:
     """
     Obtiene todas las áreas en la base de datos.

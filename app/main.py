@@ -3,9 +3,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers.users import users
-from app.routers.chemicals import chemicals
 from app.routers.areas import areas
+from app.routers.chemicals import chemicals
+from app.routers.users import users
+from app.routers.search import search
 from app.core.config import get_settings
 
 description = """
@@ -53,6 +54,7 @@ app = FastAPI(
 app.include_router(users)
 app.include_router(chemicals)
 app.include_router(areas)
+app.include_router(search)
 
 #For serving static Files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

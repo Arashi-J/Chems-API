@@ -2,10 +2,24 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from app.models.py_object_id import PyObjectId
-from app.models.enums import QueryStatus
+from app.models.enums import QueryStatus, SearchKeys
 
-async def get_documents(collection, skip: int = 0, limit: int | None = None, status = QueryStatus.all)->list:   
+async def get_documents(
+    collection,
+    skip: int = 0, 
+    limit: int | None = None, 
+    status: QueryStatus = QueryStatus.all,
+    query_keys: SearchKeys | None = None, 
+    query_value: str | None = None
+    )->list:
     query = {"status": True} if status == QueryStatus.active else {"status": False} if status == QueryStatus.inactive else {}
+    if query_keys and query_value:
+        query_data = {"$or":[]}
+        for seach_key in query_keys:
+            query_data["$or"].append({seach_key: query_value})
+        query.update(query_data)
+    
+    print(query)
     documents = await collection.find(query).skip(skip).to_list(limit)
     return documents
     
@@ -58,4 +72,4 @@ async def delete_restore_document(id: PyObjectId, collection, user: dict, collec
 
 
 #TODO: universal search
-#TODO: accept update if not change to index value
+#TODO:  show areas where the chemical is used
