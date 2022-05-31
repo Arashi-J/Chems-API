@@ -82,7 +82,7 @@ async def update_chemical(
     updated_area = await populate(updated_area, "last_update_by", users_collection, "username")
     return updated_area
 
-@areas.delete("({id}", name="Eliminar o restaurar área", response_model=AreaRead, status_code=200)
+@areas.delete("(/{id}", name="Eliminar o restaurar área", response_model=AreaRead, status_code=200)
 async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
     """
     Cambia el área correspondiente al ID ingresado a inactivo (False) o activo (True).

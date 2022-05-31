@@ -4,6 +4,7 @@ from app.core.auth import get_current_user, validate_role
 from app.crud.crud import create_document, delete_restore_document, get_document_by_id, get_documents, update_document
 from app.db.database import db
 from app.helpers.helpers import approval_validator, db_validation, multiple_db_validation, multiple_populate, populate, get_approval_info, set_status, set_update_info
+from app.models.area import AreaRead
 from app.models.chemical import ChemicalCreate, ChemicalRead, ChemicalUpdate
 from app.models.hazard import Hazard
 from app.models.ppe import Ppe
@@ -154,3 +155,13 @@ async def get_chemical(
     await db_validation(collection=ppes_collection, check_duplicate=False, search_id=True, query_value=id)
     ppe = await get_document_by_id(id, ppes_collection)
     return ppe
+
+@chemicals.get("/areas/{id}",name="Obtener áreas de la sustancia química", status_code=200, response_model=list[AreaRead], response_model_include={"id", "area"})
+async def get_area_chemicals(id: PyObjectId, active_user = Depends(get_current_user))->list[dict]:
+    """
+    Obtiene todos los áreas en los que se encuentra la sustancia química del ID ingresado.
+    """
+    await validate_role(active_user)
+    await db_validation(collection=chemicals_collection, check_duplicate=False, search_id=True, query_value=id)
+    chemical_areas =  await areas_collection.find({"chemicals": id}).to_list(None)
+    return chemical_areas

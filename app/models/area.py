@@ -27,8 +27,8 @@ class AreaUpdate(AreaBase):
 
 class AreaRead(AreaBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
-    chemicals: list[dict]
-    last_update_by: dict
+    chemicals: list[dict] | list[PyObjectId]
+    last_update_by: dict | PyObjectId
     last_update_date: datetime
     status: bool
 

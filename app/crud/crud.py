@@ -74,5 +74,3 @@ async def delete_restore_document(id: PyObjectId, collection, user: dict, collec
 
     return deleted_document
 
-
-#TODO:  show areas where the chemical is used
