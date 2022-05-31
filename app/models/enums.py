@@ -13,9 +13,9 @@ class ApprovalType(str, Enum):
 class SearchKeys(list, Enum):
     areas = ["area"]
     chemicals = ["chemical"]
-    hazards = ["hazard"]
+    hazards = ["hazard", "code"]
     ppes = ["ppe"]
-    roles = ["role"]
+    roles = ["role", "role_name"]
     users = ["firstname", "lastname", "username"]
 
 class Collections(str, Enum):

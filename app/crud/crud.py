@@ -1,4 +1,5 @@
 from datetime import datetime
+import unicodedata
 from pydantic import BaseModel
 
 from app.models.py_object_id import PyObjectId
@@ -14,12 +15,15 @@ async def get_documents(
     )->list:
     query = {"status": True} if status == QueryStatus.active else {"status": False} if status == QueryStatus.inactive else {}
     if query_keys and query_value:
+        nfkd_form = unicodedata.normalize('NFKD', query_value)
+        query_value = u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+        query_value = {"$regex": f"{(query_value)}*", "$options" :'i'}
         query_data = {"$or":[]}
         for seach_key in query_keys:
             query_data["$or"].append({seach_key: query_value})
         query.update(query_data)
     
-    print(query)
+
     documents = await collection.find(query).skip(skip).to_list(limit)
     return documents
     
@@ -71,5 +75,4 @@ async def delete_restore_document(id: PyObjectId, collection, user: dict, collec
     return deleted_document
 
 
-#TODO: universal search
 #TODO:  show areas where the chemical is used

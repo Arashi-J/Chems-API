@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from app.routers.areas import areas
 from app.routers.chemicals import chemicals
 from app.routers.users import users
@@ -33,6 +34,7 @@ tags_metadata = [
     """
     }
 ]
+
 
 app = FastAPI(
     title="Chem Manager",
@@ -82,3 +84,4 @@ app.add_middleware(
 @app.get("/", status_code=200, include_in_schema=False)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
