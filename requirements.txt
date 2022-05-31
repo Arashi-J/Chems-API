@@ -1,7 +1,6 @@
 anyio==3.5.0
 asgiref==3.5.1
 bcrypt==3.2.2
-bson==0.5.10
 certifi==2021.10.8
 cffi==1.15.0
 click==8.1.3
