@@ -44,3 +44,7 @@ class UserRead(UserBase):
     last_update_by: dict
     last_update_date: datetime
     status: bool = Field(..., title="Estado del Usuario", description="True: Usuario Activo, False: Usuario Inactivo.")
+
+class ActiveUser(UserBase):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del Usuario", description="MongoID")
+    role: dict = Field(..., title="Rol del Usuario", description="Los permisos del usuario se asignan de acuerdo al rol.")

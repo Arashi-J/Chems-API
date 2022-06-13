@@ -7,7 +7,7 @@ from app.helpers.helpers import drop_inactive_nested_ids, populate, multiple_pop
 from app.models.py_object_id import PyObjectId
 from app.models.role import Role
 from app.models.token import Token
-from app.models.user import UserRead, UserCreate, UserUpdate
+from app.models.user import ActiveUser, UserRead, UserCreate, UserUpdate
 from app.models.enums import QueryStatus
 
 users = APIRouter(prefix='/users', tags=['Usuarios'])
@@ -95,7 +95,7 @@ async def update_user(
     return updated_user
 
 
-@users.delete("({id}", name="Eliminar o restaurar usuario", response_model=UserRead, status_code=200)
+@users.delete("/{id}", name="Eliminar o restaurar usuario", response_model=UserRead, status_code=200)
 async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_user))->dict:
     """
     Cambia el usuario correspondiente al ID ingresado a inactivo (False) o activo (True).
@@ -111,6 +111,14 @@ async def delete_restore_user(id: PyObjectId, active_user = Depends(get_current_
 @users.post("/login", response_model=Token)
 async def login(token: Token = Depends(login_for_access_token)):
     return token
+
+@users.get('/active_user/', name="Obtener usuario activo", response_model=ActiveUser, status_code=200)
+async def get_active_user(active_user = Depends(get_current_user))->list:
+    """
+    Obtiene el usuario activo.
+    """
+    active_user = await populate(active_user, "role", roles_collection)
+    return active_user
     
 @users.get('/roles/', name="Obtener Roles", response_model=list[Role], status_code=200)
 async def get_roles(active_user = Depends(get_current_user))->list:
