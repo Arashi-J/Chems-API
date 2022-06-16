@@ -30,7 +30,7 @@ async def populate(
                 populated_items.append(item)
             if field_to_populate:
                 populated_items.append(
-                    {"id": nested_id, field_to_populate: item[field_to_populate]}
+                    {"_id": nested_id, field_to_populate: item[field_to_populate]}
                 )
         
         dict_to_populate.update({field_with_nested_ids: populated_items})
