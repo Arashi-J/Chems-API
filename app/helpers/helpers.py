@@ -40,7 +40,7 @@ async def populate(
         if not field_to_populate:
             populated_item = item
         if field_to_populate:
-            populated_item = {"id": field, field_to_populate: item[field_to_populate]}      
+            populated_item = {"_id": field, field_to_populate: item[field_to_populate]}      
         
         dict_to_populate.update({field_with_nested_ids: populated_item})
         
