@@ -4,11 +4,13 @@ from bson import ObjectId
 from pydantic import BaseModel, Field, validator, AnyUrl
 
 from app.helpers.helpers import drop_duplicates, p_phrase_code_normalizer, h_phrase_code_normalizer, text_normalizer_title
-from app.models.approval import Approval
 from app.models.hazard import Hazard
 from app.models.phrase import Phrase
 from app.models.ppe import Ppe
 from app.models.py_object_id import PyObjectId
+from app.models.user import UserBase
+
+
 
 class ChemicalBase(BaseModel):
 
@@ -40,13 +42,30 @@ class ChemicalUpdate(ChemicalBase):
     chemical: str | None = None
     status: bool | None = None
 
+
+class Approval(BaseModel):
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+
+
+    approval: bool = False
+    approbed_by: PyObjectId | None = None
+    approval_date: datetime  | None = None
+
+class ApprovalRead(Approval):
+    approbed_by: UserBase
+
 class ChemicalRead(ChemicalBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del químico", description="MongoID")
-    fsms: Approval | None = None
-    ems: Approval | None = None  
-    ohsms: Approval | None = None
+    fsms: ApprovalRead | Approval | None = None
+    ems: ApprovalRead | Approval | None = None  
+    ohsms: ApprovalRead | Approval | None = None
     hazards: list[Hazard]
     ppes: list[Ppe]
-    last_update_by: dict
+    last_update_by: UserBase
     last_update_date: datetime
     status: bool
+

@@ -6,6 +6,7 @@ from bson import ObjectId
 from app.core.security import hash_password
 from app.models.py_object_id import PyObjectId
 from app.helpers.helpers import text_normalizer_lower, text_normalizer_title, drop_duplicates
+from app.models.role import Role
 
 class UserBase(BaseModel):
     firstname: str = Field(..., title="Nombre del Usuario", description="Nombre del Usuario.")
@@ -47,4 +48,4 @@ class UserRead(UserBase):
 
 class ActiveUser(UserBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="ID del Usuario", description="MongoID")
-    role: dict = Field(..., title="Rol del Usuario", description="Los permisos del usuario se asignan de acuerdo al rol.")
+    role: Role = Field(..., title="Rol del Usuario", description="Los permisos del usuario se asignan de acuerdo al rol.")
